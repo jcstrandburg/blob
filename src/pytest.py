@@ -1,6 +1,8 @@
 import pygame
 from pygame.locals import *
-from framework import ResourceManager, SettingsManager, GameController, Activity, EventListener
+from framework import GameController, Activity, EventListener
+from managers import settings, resources
+from animation import Animation
 
 '''class ChildActivity(Activity):
 
@@ -40,16 +42,14 @@ class GoofBall(pygame.sprite.Sprite):
         except pygame.error:
             print pygame.error
         
-        
-        self.src_image = pygame.image.load( "res/bbob.png")
-        self.image = self.src_image
+        self.image = resources.get( "bbob")
         self.rect = self.image.get_rect()
         self.position = (10, 10)
 
     def update( self, timestep):
         x, y = self.position
-        x += timestep*5
-        y += timestep*10
+        x += timestep*50
+        y += timestep*100
         self.position = (x, y)
         self.rect.center = self.position
 
@@ -84,7 +84,7 @@ class Listen3(EventListener):
 
     def __init__( self):
         EventListener.__init__( self)
-        self.effect = pygame.mixer.Sound( 'res/button-2.wav')
+        self.effect = resources.get( "snd2")
 
     def handle_event( self, event):
 
@@ -124,6 +124,8 @@ class ProtoActivity(Activity):
         Activity.update( self, timestep)
         self.orlando.update( timestep)
         self.timer += timestep
+
+        print timestep
         #print "timer:", self.timer
         #self.finish()
 
@@ -148,6 +150,8 @@ def main():
     gc.start_activity( ProtoActivity, None)
     running = 1
 
+    resources.get( "bbob2")
+
     while running:
 
         #process events
@@ -161,8 +165,10 @@ def main():
         if gc.activities_empty():
             break
         gc.draw()
-    
+
     gc.cleanup()
+    print "resources", len( gc.resources._resources)
+
 
 main()
 

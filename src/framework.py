@@ -1,47 +1,41 @@
 import pygame
-
-class ResourceManager(object):
-    _resources = {}
-    def __init__(self):
-        pass
-
-    def load( self, file):
-        pass
-
-    def get( self, tag):
-        return self._resources[tag]
-
-
-class SettingsManager(object):
-
-    _settings = {}
-    def load( self, file):
-        pass
-
-    def get( self, tag, default=None):
-        pass
-
-    def put( self, tag, value):
-        pass
+import random
+from managers import resources, settings
+import time
 
 class GameController(object):
     
     _activities = [] #stack of activities, only the top is currently active
     _pending = [] #list of activities waiting to be added to the stack
     _top_activity = None #the current active activity
-    settings = SettingsManager()
-    resources = ResourceManager()
+    _time_stored = 0.0 #the amount of time that needs to be simulated in state changes
+    _min_timestep = 0.0 #the lowest amount of time that can occur in a state update
+    _max_timestep = 0.0 #the max time that can occure in a state update
+    _max_steps = 0 #maximum number of state updates performed per frame drawn (for low fps situations)
     screen = None
     
     def __init__( self):
-        self.clock = pygame.time.Clock()
-        self.clock.tick()
         pass
 
     def startup( self):
-        self.screen = pygame.display.set_mode( (640, 480))
+
+        settings.load( 'config.txt')
+        resources.load( settings.get( "res_dir", "res2"),
+                             settings.get( "res_list", "yermom"))
+
+        w = settings.get( "screenw", 400)
+        h = settings.get( "screenh", 400)
+        self._min_timestep = settings.get( "min_timestep", "0.005")
+        self._max_timestep = settings.get( "max_timestep", "0.1")
+        self._max_steps = settings.get( "max_steps_per_frame", 10)
+
+        print self._min_timestep, self._max_timestep, self._max_steps
+
+        self.screen = pygame.display.set_mode( (w, h))
         pygame.mixer.init()
-        pass
+
+        self.clock = pygame.time.Clock()
+        self.clock.tick()
 
     def cleanup( self):
         pass
@@ -65,6 +59,7 @@ class GameController(object):
             return None
 
     def update(  self, timestep = None):
+
         #add all pending activities to the stack
         if len( self._pending) > 0:
 
@@ -95,14 +90,20 @@ class GameController(object):
             top = self._top_activity()
 
         #calculate the timestep if none provided
-        ticks = self.clock.tick()
-        if timestep is None:
+        if timestep is None:   
+            ticks = self.clock.tick()
             timestep = float(ticks)/1000
+            self._time_stored += timestep
 
         #force the top activity to resume and do an update
         if top is not None:
             top.resume()
-            top.update( timestep)
+
+            for i in range( self._max_steps):
+                if self._time_stored > self._min_timestep:
+                    timestep = min( (self._time_stored, self._max_timestep))
+                    top.update( timestep)
+                    self._time_stored -= timestep
                 
     #returns true if the activity stack is empty (does not check pending activities!)
     def activities_empty( self):

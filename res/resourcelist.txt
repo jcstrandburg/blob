@@ -1,0 +1,11 @@
+#player images
+image, bbob, bbob.png
+image, bbob2, bbob.png
+
+#some sounds
+sound, snd1, button-10.wav
+sound, snd2, button-2.wav
+
+#animation shit
+anim, testani, anim.ani
+

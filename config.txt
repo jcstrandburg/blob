@@ -1,0 +1,16 @@
+res_dir = res
+res_list = resourcelist.txt
+screenw = 340
+screenh = 340
+#beefbob = 100
+
+line1=stuff and junk
+line2=3.0
+line3=4
+line4=89.4
+potato=potato
+
+#control the timestep range
+min_timestep = 0.01
+max_timestep = 0.05
+max_steps_per_frame = 5
