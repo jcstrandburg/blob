@@ -64,6 +64,35 @@ class AnimationHandle:
     def get_current_frame( self):
         return self._frames[ self._cur_frame]
 
+class AnimatedSprite(pygame.sprite.Sprite):
+
+    _cur_animation = None
+    _animations = []
+
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+
+    def load_animation( self, tag):
+        next_index = len( self._animations)
+        handle = resources.get( tag).get_new_handle()
+        self._animations.append( handle)
+        return next_index
+
+    #this must be defined by the inheriting class
+    def get_anim_index( self):
+        pass
+
+    def get_animation( self, index):
+        return _animations[index]
+
+    def update( self, timestep):
+        index = self.get_anim_index()
+        if index is not None:
+            if index != self._cur_animation:
+                self._cur_animation = index
+                self._animations[ self._cur_animation].reset()
+            self.image = self._animations[ self._cur_animation].get_image()
+
 if __name__ == "__main__":
     
     anim = AnimatedImage( os.path.join( "res", "anim.ani"))      

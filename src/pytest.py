@@ -2,11 +2,12 @@ import pygame
 from pygame.locals import *
 from framework import GameController, Activity, EventListener
 from managers import settings, resources
+from animation import AnimatedSprite
 
-class GoofBall(pygame.sprite.Sprite):
+class GoofBall(AnimatedSprite):
 
     def __init__( self):
-        pygame.sprite.Sprite.__init__(self)
+        AnimatedSprite.__init__(self)
         try:
             pass
         except pygame.error:
@@ -14,11 +15,13 @@ class GoofBall(pygame.sprite.Sprite):
         
         self.image = resources.get( "bbob")
         self.animation = resources.get( "testani").get_new_handle()
+        #self.baseani = self.load_animation( "testani")
         self.image = self.animation.get_current_frame()
         self.rect = self.image.get_rect()
         self.position = (10, 10)
 
     def update( self, timestep):
+        #AnimatedSprite.update( self, timestep)
         x, y = self.position
         x += timestep*10
         y += timestep*15
