@@ -2,36 +2,6 @@ import pygame
 from pygame.locals import *
 from framework import GameController, Activity, EventListener
 from managers import settings, resources
-from animation import Animation
-
-'''class ChildActivity(Activity):
-
-    iteration = 0
-
-    def on_create( self, config):
-        Activity.on_create( self, config)
-        print "ChildActivity created"
-
-    def on_resume( self):
-        Activity.on_resume( self)
-        print "ChildActivity resuming"
-
-    def on_pause( self):
-        Activity.on_pause( self)
-        print "ChildActivity pausing"
-
-    def on_destroy( self):
-        Activity.on_destroy( self)
-        print "ChildActivity destroying"
-
-    def update( self, timestamp):
-        Activity.update( self, timestamp)
-        self.controller.start_activity( DoakesActivity, None)
-        print "ChildActivity updating", self.iteration
-        self.iteration += 1
-        if self.iteration >= 2:
-            self.finish()
-'''
 
 class GoofBall(pygame.sprite.Sprite):
 
@@ -43,15 +13,19 @@ class GoofBall(pygame.sprite.Sprite):
             print pygame.error
         
         self.image = resources.get( "bbob")
+        self.animation = resources.get( "testani").get_new_handle()
+        self.image = self.animation.get_current_frame()
         self.rect = self.image.get_rect()
         self.position = (10, 10)
 
     def update( self, timestep):
         x, y = self.position
-        x += timestep*50
-        y += timestep*100
+        x += timestep*10
+        y += timestep*15
         self.position = (x, y)
         self.rect.center = self.position
+        self.animation.cycle( timestep)
+        self.image = self.animation.get_current_frame()
 
 class Listen1(EventListener):
     def handle_event( self, event):
@@ -114,7 +88,6 @@ class ProtoActivity(Activity):
         self.orlando = GoofBall()
         self.orgroup = pygame.sprite.RenderPlain( self.orlando)
         self.timer = 0.0
-        print "wat"
 
         self.add_event_listener( Listen1(), (KEYUP, KEYDOWN))
         self.add_event_listener( Listen2(), (KEYUP, KEYDOWN))
@@ -124,10 +97,6 @@ class ProtoActivity(Activity):
         Activity.update( self, timestep)
         self.orlando.update( timestep)
         self.timer += timestep
-
-        print timestep
-        #print "timer:", self.timer
-        #self.finish()
 
     def handle_event( self, event):
         event_handled = 0
@@ -167,7 +136,7 @@ def main():
         gc.draw()
 
     gc.cleanup()
-    print "resources", len( gc.resources._resources)
+    print "resources", len( resources._resources)
 
 
 main()

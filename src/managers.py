@@ -1,5 +1,6 @@
 import os
 import pygame
+from animation import AnimatedImage
 
 class ResourceManager(object):
     _resources = {} #dictionary of actual resource objects, indexed by uri's
@@ -56,6 +57,8 @@ class ResourceManager(object):
                     self._resources[uri] = pygame.image.load( uri).convert()
                 elif restype == "sound":
                     self._resources[uri] = pygame.mixer.Sound( uri)
+                elif restype == "anim":
+                    self._resources[uri] = AnimatedImage( uri)
                 else:
                     raise Exception( "Unkown resource type "+restype+" on resource "+tag)                    
                     return None
