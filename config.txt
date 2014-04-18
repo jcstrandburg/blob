@@ -4,6 +4,7 @@ screenw = 750
 screenh = 750
 #beefbob = 100
 
+level_dir = levels
 line1=stuff and junk
 line2=3.0
 line3=4

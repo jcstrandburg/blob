@@ -207,7 +207,7 @@ def main():
     gc = GameController()
     gc.startup()
     
-    gc.start_activity(GameplayActivity, {"level": "level1.xml"})
+    gc.start_activity(GameplayActivity, {"level": gc.level_path(1)})
     running = 1
 
     while running:

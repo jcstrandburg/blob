@@ -2,6 +2,7 @@ import pygame
 import random
 from managers import resources, settings
 import time
+import os
 
 class GameController(object):
     
@@ -31,6 +32,10 @@ class GameController(object):
         self.clock = pygame.time.Clock()
         self.clock.tick()
 
+    def level_path(self, level):
+        level = str(level)+".xml"
+        return os.path.join( settings.get("level_dir", "lev"), level)
+ 
     def cleanup(self):
         pygame.quit()
         pass
