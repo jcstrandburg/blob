@@ -32,10 +32,6 @@ class ResourceManager(object):
 
             #it's not loaded yet, try to load it
             except KeyError:
-
-
-                print "Loaded resource from", uri
-
                 if restype == "image":
                     self._resources[uri] = pygame.image.load(uri).convert()
                 elif restype == "sound":

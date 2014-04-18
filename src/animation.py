@@ -4,20 +4,15 @@ import managers
 
 class AnimatedImage(object):
 
-    _imgsrc = None
-    _frame_lengths = []
-    _frame_images = []
-
     def __init__(self, filepath):
-
+        pygame.sprite.Sprite.__init__(self)
         anifile = file(filepath)
         pathbase = os.path.split(filepath)[0]
         imgpath = anifile.readline().strip()
         self._imgsrc = pygame.image.load(os.path.join(pathbase, imgpath)).convert()
         self._numframes = int(anifile.readline())
-
-        print "loading ani from", filepath
-        print "loading image from", os.path.join(pathbase, imgpath)
+        self._frame_lengths = []
+        self._frame_images = []
 
         #split the image up into the individual frames
         frame_width = self._imgsrc.get_width()/self._numframes

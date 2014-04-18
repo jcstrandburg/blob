@@ -5,31 +5,25 @@ import time
 
 class GameController(object):
     
-    _activities = [] #stack of activities, only the top is currently active
-    _pending = [] #list of activities waiting to be added to the stack
-    _top_activity = None #the current active activity
-    _time_stored = 0.0 #the amount of time that needs to be simulated in state changes
-    _min_timestep = 0.0 #the lowest amount of time that can occur in a state update
-    _max_timestep = 0.0 #the max time that can occure in a state update
-    _max_steps = 0 #maximum number of state updates performed per frame drawn (for low fps situations)
-    screen = None
-    
     def __init__(self):
         pass
 
     def startup(self):
 
+        pygame.init()
+        self._activities = [] #stack of activities, only the top is currently active
+        self._pending = [] #list of activities waiting to be added to the stack
+        self._time_stored = 0.0 #the amount of time that needs to be simulated in state changes
+        
         settings.load('config.txt')
-        resources.load(settings.get("res_dir", "res2"),
-                             settings.get("res_list", "yermom"))
+        resources.load(settings.get("res_dir", "res"),
+                             settings.get("res_list", "resources.txt"))
 
         w = settings.get("screenw", 400)
         h = settings.get("screenh", 400)
-        self._min_timestep = settings.get("min_timestep", "0.005")
-        self._max_timestep = settings.get("max_timestep", "0.1")
-        self._max_steps = settings.get("max_steps_per_frame", 10)
-
-        print self._min_timestep, self._max_timestep, self._max_steps
+        self._min_timestep = settings.get("min_timestep", "0.005")#the lowest amount of time that can occur in a state update
+        self._max_timestep = settings.get("max_timestep", "0.1")#the max time that can occure in a state update
+        self._max_steps = settings.get("max_steps_per_frame", 10)#maximum number of state updates performed per frame drawn (for low fps situations)
 
         self.screen = pygame.display.set_mode((w, h))
         pygame.mixer.init()
@@ -38,6 +32,7 @@ class GameController(object):
         self.clock.tick()
 
     def cleanup(self):
+        pygame.quit()
         pass
 
     def draw(self):
@@ -47,16 +42,16 @@ class GameController(object):
             top.draw(self.screen)
         pygame.display.flip()
 
-    def handle_event(self, event):
-        top = self._top_activity()
-        if top is not None:
-            top.handle_event(event)
-
     def _top_activity(self):
         if len(self._activities) > 0:
             return self._activities[-1]
         else:
-            return None
+            return None        
+        
+    def handle_event(self, event):
+        top = self._top_activity()
+        if top is not None:
+            top.handle_event(event)
 
     def update(self, timestep = None):
 
@@ -110,7 +105,7 @@ class GameController(object):
         return len(self._activities) == 0
         
 
-    #add the given activity to a queue of pending adctivities to be added at the beginning of the next update
+    #add the given activity to a queue of pending activities to be added at the beginning of the next update
     def start_activity(self, ActClass, config):
         self._pending.append((ActClass, config))
 
@@ -122,13 +117,12 @@ class GameController(object):
             self._top_activity.pause()
 
 class Activity(object):
-    controller = None
-    paused = 1
-    finished = 0
-    listeners = []
 
     def __init__(self, controller):
         self.controller = controller
+        self.paused = 1
+        self.finished = 0
+        self.listeners = []
 
     def on_create(self, config):
         pass

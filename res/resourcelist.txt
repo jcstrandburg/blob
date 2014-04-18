@@ -2,6 +2,7 @@
 image, bbob, bbob.png
 image, bbob2, bbob.png
 image, otherimage, anim2.png
+image, menubg, menubg.png
 
 #some sounds
 sound, snd1, button-10.wav
