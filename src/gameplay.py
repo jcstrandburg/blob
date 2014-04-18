@@ -12,16 +12,23 @@ import pymunk
 from pymunk.vec2d import Vec2d
 import xml.etree.ElementTree as ET
 
-MAXCHARGE = 9.0
-CHARGERATE = 9.0
-IMPULSEMOD = 1600
+MAXCHARGE = 16.0
+CHARGERATE = 16.0
+IMPULSEMOD = 500
 GRAVITY = -600
+
+GRAVBALL_COOLDOWN = -2.0
+GRAVBALL_STREN = 180000
+
+FORCEFIELD_STRENGTH = 1000.
 
 COLL_PLAYER = 1
 COLL_MAGNET = 2
 COLL_SPINNER = 3
 COLL_GRAVBALL = 4
 COLL_SEGMENT = 5
+COLL_FORCEFIELD = 6
+COLL_VICTORY = 7
 
 
 def get_attrib(attribs, key, default=None, convert=None):
@@ -68,6 +75,26 @@ class GameplayActivity(Activity):
         self.spinners.append( spinner)
         return spinner
     
+    def make_victory(self, x, y, w, h):
+        points = [(x,y), (x+w,y), (x+w,y+h), (x,y+h)]
+        vic = pymunk.Poly( self.space.static_body, points)
+        vic.color = (255,255,0)
+        vic.collision_type = COLL_VICTORY
+        self.space.add( vic)
+        self.victories.append(vic)
+        return vic
+
+    def make_forcefield(self, x, y, w, h, force):
+        points = [(x,y), (x+w,y), (x+w,y+h), (x,y+h)]
+        
+        field = pymunk.Poly( self.space.static_body, points)
+        field.fieldforce = force
+        field.collision_type = COLL_FORCEFIELD
+        field.center = Vec2d( x+w/2, y+h/2)
+        self.space.add( field)
+        self.forcefields.append( field)
+
+
     def make_wall(self, v1, v2, material=0, size=3):
         evalues = [0.2, 1.0, 0.2]
         fvalues = [1.5, 0.5, 0.1]
@@ -121,9 +148,9 @@ class GameplayActivity(Activity):
         puller = pymunk.Body(pymunk.inf,pymunk.inf)
         puller.position = pos
         puller.size = size
-        puller.strength = size*65000
+        puller.strength = size*GRAVBALL_STREN
         puller.wellsize = wellsize
-        puller.timer = -5.0
+        puller.timer = -.5
 
         circ = pymunk.Circle( puller, size)
         circ.friction = 1.0
@@ -157,6 +184,8 @@ class GameplayActivity(Activity):
         self.space.gravity = 0, GRAVITY
         self.space.add_collision_handler( COLL_PLAYER, COLL_MAGNET, post_solve=self.player_magnet_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_GRAVBALL, post_solve=self.player_gravball_collide)
+        self.space.add_collision_handler( COLL_PLAYER, COLL_FORCEFIELD, pre_solve=self.player_forcefield_collide)
+        self.space.add_collision_handler( COLL_PLAYER, COLL_VICTORY, pre_solve=self.player_victory_collide)
 
         self.make_player( (100, 100))    
         self.gravballs = []
@@ -164,9 +193,13 @@ class GameplayActivity(Activity):
         self.magnets = []
         self.segments = []
         self.enemies = []
+        self.forcefields = []
+        self.victories = []
 
         #create all of the elements
         for e in self.level_elements:
+            print "loading", e.tag
+
             if e.tag == "spinner":
                 x = get_attrib(e.attrib, "x", None, float)
                 y = get_attrib(e.attrib, "y", None, float)
@@ -202,7 +235,20 @@ class GameplayActivity(Activity):
                 y = get_attrib(e.attrib, "y", None, float)
                 self.reposition_player( (x,y), (0,0))
             elif e.tag == "victory":
-                print "victory not implemented"
+                x = get_attrib(e.attrib, "x", None, float)
+                y = get_attrib(e.attrib, "y", None, float)
+                w = get_attrib(e.attrib, "w", None, float)
+                h = get_attrib(e.attrib, "h", None, float)
+                self.make_victory( x, y, w, h)
+            elif e.tag == "forcefield":
+                x = get_attrib(e.attrib, "x", None, float)
+                y = get_attrib(e.attrib, "y", None, float)
+                w = get_attrib(e.attrib, "w", None, float)
+                h = get_attrib(e.attrib, "h", None, float)
+                fx = get_attrib(e.attrib, "forcex", None, float)
+                fy = get_attrib(e.attrib, "forcey", None, float)
+                self.make_forcefield( x, y, w, h, Vec2d(fx, fy))
+        
             else:
                 print "unrecognized tag", e.tag
 
@@ -217,9 +263,9 @@ class GameplayActivity(Activity):
         phase = bbody.angle - sbody.angle 
         gear_joint = pymunk.GearJoint(bbody, sbody,phase,1)        
         gear_joint.max_force = 600000.
-        space.add(gear_joint)
+        #space.add(gear_joint)
 
-        bbody.joints = pivot_joint, gear_joint
+        bbody.joints = [pivot_joint]#, gear_joint]
 
         print "done"
 
@@ -232,10 +278,19 @@ class GameplayActivity(Activity):
 
         return True
 
+    def player_victory_collide(self, space, arbiter):
+        print "you win fucker"
+        return True
+
     def player_gravball_collide(self, space, arbiter):
         player, gravball = arbiter.shapes
-        gravball.body.timer = -5.0
+        gravball.body.timer = GRAVBALL_COOLDOWN
         return True
+
+    def player_forcefield_collide(self, space, arbiter):
+        player, ff = arbiter.shapes
+        #player.body.apply_impulse( ff.fieldforce)
+        return False
         
     def on_create(self, config):
         Activity.on_create(self, config)
@@ -244,8 +299,8 @@ class GameplayActivity(Activity):
         self.grabbed = None
         self.mousepos = Vec2d(0,0)
         
-        filename = config["level"]
-        self.level_elements = ET.parse( filename).getroot()
+        self.filename = config["level"]
+        self.level_elements = ET.parse( self.filename).getroot()
         self.reload_level()
         
     def update(self, timestep):
@@ -267,23 +322,23 @@ class GameplayActivity(Activity):
                 angle += math.pi*2
             self.grabbed.angle = angle
 
+        for ff in self.forcefields:
+            if ff.point_query( self.player.position):
+                self.player.apply_impulse( ff.fieldforce*FORCEFIELD_STRENGTH*timestep)
+            
+
         for puller in self.gravballs:
 
             if puller.timer > 0:
-                xdif = puller.position[0] - self.player.position[0]
-                ydif = puller.position[1] - self.player.position[1]
-                dist = math.sqrt( xdif*xdif + ydif*ydif)
+
+                diff = puller.position - self.player.position
+                dist = diff.get_length()
                 if dist < puller.wellsize:
                     
-                    mag = (puller.strength)/(dist+10)*timestep
-                    force = Vec2d(xdif, ydif).normalized()*mag
-                    print mag
+                    mag = (puller.strength)/(dist)*timestep
+                    force = diff*mag/dist
                     self.player.apply_impulse( force)
-                    '''mag = (10000000000.)/(dist*dist+550)*timestep
-                    force = Vec2d(mag*xdif/dist,mag*ydif/dist)
-                    force *= timestep
-                    print mag
-                    self.ball.apply_impulse( force)'''
+
             else:
                 puller.timer += timestep
             
@@ -335,7 +390,8 @@ class GameplayActivity(Activity):
             elif event.key == K_ESCAPE:
                 self.finish()
             elif event.key == K_q:
-                print self.tilt
+                self.level_elements = ET.parse( self.filename).getroot()
+                self.reload_level()
         
         if not event_handled:
             Activity.handle_event(self, event)
@@ -344,6 +400,9 @@ class GameplayActivity(Activity):
         Activity.draw(self, screen)
         pymunk.pygame_util.draw( screen, self.space)
         pos = pygame.mouse.get_pos()
+
+        for ff in self.forcefields:
+            pygame.draw.line( screen, (255,255,255), pymunk.pygame_util.to_pygame( ff.center, screen), pymunk.pygame_util.to_pygame( ff.center+ff.fieldforce, screen))
 
         for puller in self.gravballs:
             if puller.timer > 0:
