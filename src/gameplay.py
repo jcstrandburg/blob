@@ -4,11 +4,12 @@ from pygame.locals import *
 from framework import GameController, Activity, EventListener
 import random
 import os, sys
+from managers import resources
 
 current_path = os.getcwd()
 sys.path.insert(0, os.path.join( current_path, "src/pymunk-4.0.0" ) )
 
-import pymunk
+import pymunk, pymunk.pygame_util
 from pymunk.vec2d import Vec2d
 import xml.etree.ElementTree as ET
 
@@ -18,7 +19,7 @@ IMPULSEMOD = 500
 GRAVITY = -600
 
 GRAVBALL_COOLDOWN = -2.0
-GRAVBALL_STREN = 180000
+GRAVBALL_STREN = 240000
 
 FORCEFIELD_STRENGTH = 1000.
 
@@ -56,6 +57,7 @@ class GameplayActivity(Activity):
         spinner.position = pos
         spinner.angle = angle
         spinner.angular_velocity = speed
+        spinner.material = material
 
         if mode == "drag":
             spinner.draggable = True
@@ -96,8 +98,8 @@ class GameplayActivity(Activity):
 
 
     def make_wall(self, v1, v2, material=0, size=3):
-        evalues = [0.2, 1.0, 0.2]
-        fvalues = [1.5, 0.5, 0.1]
+        evalues = [0.1, 1.0, 0.05]
+        fvalues = [2.0, 0.5, 0.1]
         colors =  [ (255,50,50), (50,255,50), (50,50,255)]
 
         wall = pymunk.Segment( self.space.static_body, v1, v2, size)
@@ -105,6 +107,8 @@ class GameplayActivity(Activity):
         wall.friction = fvalues[material]
         wall.color = colors[material]
         wall.collision_type = COLL_SEGMENT
+        wall.material = material
+        print wall.radius
 
         self.space.add( wall)
         self.segments.append(wall)
@@ -130,19 +134,6 @@ class GameplayActivity(Activity):
         self.space.add(ball, shape)
         self.player = ball
         self.player.shape = shape
-
-    def make_crates(self):
-        mass = 4
-        size = 20
-        for i in range(10):
-            body = pymunk.Body( mass, pymunk.moment_for_box(mass,size*2,size*2))
-            body.position = (100, 40+i*size*2)
-            shape = pymunk.Poly(body, ((-size,-size),(size,-size),(size,size),(-size,size)))
-            body.shape = shape
-            shape.color = (0,255,0)
-            shape.elasticity = 0.10
-            shape.friction = 0.8
-            self.space.add( body, shape)
         
     def make_gravball(self, pos, mode, size, wellsize):
         puller = pymunk.Body(pymunk.inf,pymunk.inf)
@@ -152,8 +143,8 @@ class GameplayActivity(Activity):
         puller.wellsize = wellsize
         puller.timer = -.5
 
-        circ = pymunk.Circle( puller, size)
-        circ.friction = 1.0
+        circ = pymunk.Circle( puller, math.pow(size, .7))
+        circ.friction = 0.2
         circ.collision_type = COLL_GRAVBALL
         puller.shape = circ
 
@@ -184,7 +175,6 @@ class GameplayActivity(Activity):
         self.space.gravity = 0, GRAVITY
         self.space.add_collision_handler( COLL_PLAYER, COLL_MAGNET, post_solve=self.player_magnet_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_GRAVBALL, post_solve=self.player_gravball_collide)
-        self.space.add_collision_handler( COLL_PLAYER, COLL_FORCEFIELD, pre_solve=self.player_forcefield_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_VICTORY, pre_solve=self.player_victory_collide)
 
         self.make_player( (100, 100))    
@@ -286,11 +276,6 @@ class GameplayActivity(Activity):
         player, gravball = arbiter.shapes
         gravball.body.timer = GRAVBALL_COOLDOWN
         return True
-
-    def player_forcefield_collide(self, space, arbiter):
-        player, ff = arbiter.shapes
-        #player.body.apply_impulse( ff.fieldforce)
-        return False
         
     def on_create(self, config):
         Activity.on_create(self, config)
@@ -298,6 +283,7 @@ class GameplayActivity(Activity):
         self.charge = 0
         self.grabbed = None
         self.mousepos = Vec2d(0,0)
+        self.complex_drawing = True
         
         self.filename = config["level"]
         self.level_elements = ET.parse( self.filename).getroot()
@@ -335,7 +321,7 @@ class GameplayActivity(Activity):
                 dist = diff.get_length()
                 if dist < puller.wellsize:
                     
-                    mag = (puller.strength)/(dist)*timestep
+                    mag = (puller.strength)/(math.pow(dist,1.2)+30)*timestep
                     force = diff*mag/dist
                     self.player.apply_impulse( force)
 
@@ -383,7 +369,6 @@ class GameplayActivity(Activity):
             self.grabbed = None
                 
         elif event.type == KEYDOWN:
-
             if event.key == K_SPACE:
                 self.player.position = (300,300)
                 self.player.velocity = Vec2d(0,0)
@@ -392,15 +377,32 @@ class GameplayActivity(Activity):
             elif event.key == K_q:
                 self.level_elements = ET.parse( self.filename).getroot()
                 self.reload_level()
-        
+            elif event.key == K_1:
+                self.complex_drawing = not self.complex_drawing        
+
         if not event_handled:
             Activity.handle_event(self, event)
 
+    def draw_segment(self, screen, v1, v2, material):
+        land = resources.get( "land1")
+        land_vert = resources.get( "land1_vert")    
+        diff = v2-v1
+        if math.fabs( diff[0]) > math.fabs( diff[1]):
+            slope = diff[1]/diff[0]
+            for x in xrange( int(v2[0]-v1[0])):
+                pos = pymunk.pygame_util.to_pygame(v1 + Vec2d(1,slope)*x, screen)
+                screen.blit( land, (pos[0],pos[1]-3))
+        else:
+            slope = diff[0]/diff[1]
+            for x in xrange( int(v2[1]-v1[1])):
+                pos = pymunk.pygame_util.to_pygame(v1 + Vec2d(slope,1)*x, screen)
+                screen.blit( land_vert, (pos[0]-3,pos[1]))        
+            
     def draw(self, screen):
         Activity.draw(self, screen)
         pymunk.pygame_util.draw( screen, self.space)
         pos = pygame.mouse.get_pos()
-
+        
         for ff in self.forcefields:
             pygame.draw.line( screen, (255,255,255), pymunk.pygame_util.to_pygame( ff.center, screen), pymunk.pygame_util.to_pygame( ff.center+ff.fieldforce, screen))
 
@@ -408,6 +410,12 @@ class GameplayActivity(Activity):
             if puller.timer > 0:
                 pos = ( int(puller.position[0]), 750-int(puller.position[1]))
                 pygame.draw.circle( screen, (255,255,0), pos, puller.wellsize, 1)
+        
+        if self.complex_drawing:
+            for s in self.segments:
+                self.draw_segment( screen, s.a, s.b, s.material)
+                v1 = s.a
+                v2 = s.b
         
         pos = Vec2d( pygame.mouse.get_pos())
         ballpos = pymunk.pygame_util.to_pygame( self.player.position, screen)

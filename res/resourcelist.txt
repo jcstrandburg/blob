@@ -12,3 +12,7 @@ sound, snd2, button-2.wav
 anim, testani, anim.ani
 anim, otherani, anim2.ani
 
+#terrain shit
+image, land1, land.png
+image, land1_vert, land_vert.png
+
