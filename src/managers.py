@@ -33,7 +33,7 @@ class ResourceManager(object):
             #it's not loaded yet, try to load it
             except KeyError:
                 if restype == "image":
-                    self._resources[uri] = pygame.image.load(uri).convert()
+                    self._resources[uri] = pygame.image.load(uri).convert_alpha()
                 elif restype == "sound":
                     self._resources[uri] = pygame.mixer.Sound(uri)
                 elif restype == "anim":

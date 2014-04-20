@@ -41,7 +41,7 @@ class GameController(object):
         pass
 
     def draw(self):
-        self.screen.fill((0,0,0) )
+        self.screen.fill((100,200,255) )
         top = self._top_activity()
         if top is not None:
             top.draw(self.screen)
@@ -94,6 +94,7 @@ class GameController(object):
             ticks = self.clock.tick()
             timestep = float(ticks)/1000
             self._time_stored += timestep
+            pygame.display.set_caption( str(self.clock.get_fps()))
 
         #force the top activity to resume and do an update
         if top is not None:

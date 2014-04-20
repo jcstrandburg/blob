@@ -12,8 +12,9 @@
     <segment x1='750' y1='0' x2='750' y2='750' material='0'/>
 
     <segment x1='200' y1='300' x2='550' y2='310' material='0'/>
-    <segment x1='200' y1='300' x2='200' y2='500' material='0'/>
-    <segment x1='200' y1='500' x2='550' y2='490' material='0'/>
+    <segment x1='200' y1='300' x2='200' y2='500' material='1'/>
+    <segment x1='200' y1='500' x2='550' y2='490' material='2'/>
+	<segment x1='100' y1='600' x2='150' y2='600' material='3'/>
 
 
     <!--<gravball mode='pull' x='550' y='480' size='12' wellsize='125'/>
@@ -24,11 +25,14 @@
     <forcefield x='550' y='200' w='200' h='100' forcex='0' forcey='-20'/>
 
     <magnet x='400' y='100' size='20'/>-->
-    <player x='350' y='50'/>
+    <player x='325' y='550'/>
     <!--<victory x='250' y='300' w='100' h='100'/>-->
 	
-	<gravball mode='pull' x='200' y='200' size='25' wellsize='150'/>
-	<gravball mode='pull' x='550' y='200' size='40' wellsize='150'/>
+	 <spinner mode='drag' x='300' y='200' length='60' angle='0.0' material='2'/>
+	
+	<gravball mode='push' x='120' y='200' size='50' wellsize='150'/>
+	<gravball mode='pull' x='550' y='200' size='50' wellsize='150'/>
+	<enemy x='375' y='550' leftlimit='250' rightlimit='475' dir='1'/>
 	<!--<gravball mode='push' x='375' y='400' size='60' wellsize='150'/>-->
 
 

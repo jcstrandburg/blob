@@ -13,5 +13,5 @@ potato=potato
 
 #control the timestep range
 min_timestep = 0.005
-max_timestep = 0.01
+max_timestep = 0.005
 max_steps_per_frame = 5
