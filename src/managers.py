@@ -20,6 +20,8 @@ class ResourceManager(object):
                 restype, tag, path  = line.split(',')
                 restype, tag, path = restype.strip(), tag.strip(), path.strip()
                 self._preloads[tag] = (restype, os.path.join(dirpath, path))
+                
+        print self._preloads
 
     def get(self, tag):
         try:

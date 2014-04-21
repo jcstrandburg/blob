@@ -6,74 +6,74 @@ import random
 from gameplay import GameplayActivity
 import os, sys
 from managers import resources
+import menu
+from testbed import TestBed
 
-class PlatformRenderer(object):
-    def __init__(self, images):
-        self.images = images
-        self.xslices = []
-        for x in range(images[0].get_width()):
-            self.xslices.append( images[0].subsurface( (x,0,1,images[0].get_height())))
-        self.yslices = []
-        for y in range(images[1].get_height()):
-            self.yslices.append( images[1].subsurface( (0,y,images[0].get_width(),1)))
-        
-    def draw(self, screen, v1, v2):
+class LevelSelectMenu(menu.MenuActivity):
+    def __init__(self, controller):
+        menu.MenuActivity.__init__(self, controller)
     
-        xdif = v2[0]-v1[0]
-        ydif = v2[1]-v1[1]
-    
-        if math.fabs(xdif) > math.fabs(ydif):
-            slope = float(ydif)/xdif
-            if xdif < 0:
-                v1, v2 = v2, v1
-            for x in xrange( v2[0]-v1[0]):
-                img = self.xslices[x%len(self.xslices)]
-                screen.blit( img, (v1[0]+x, int(v1[1]+slope*x)-img.get_height()/2))
-        else:
-            slope = float(xdif)/ydif
-            if ydif < 0:
-                v1, v2 = v2, v1
-            for y in xrange( v2[1]-v1[1]):
-                img = self.yslices[y%len(self.yslices)]
-                screen.blit( img, (int(v1[0]+slope*y-img.get_width()/2), v1[1]+y))
-
-class TestAct(Activity):
-
     def on_create(self, config):
-        print "yeah"
-        self.images = []
-        self.a = PlatformRenderer((pygame.image.load( "brick.png"), (pygame.image.load( "brick.png"))))
-        self.b = PlatformRenderer((pygame.image.load( "ice.png"), (pygame.image.load( "icev.png"))))
-        self.c = PlatformRenderer((pygame.image.load( "bounce.png"), (pygame.image.load( "bouncev.png"))))
+        menu.MenuActivity.on_create(self, config)
+        font = pygame.font.Font(None, 36)
+    
+        levels = self.controller.get_level_list()
+        for index, lev in enumerate( levels):
+            widget = menu.TextButtonWidget( "Level "+str(lev), font, (200, 100+index*30))
+            widget.onclick = self.make_level_callback( lev)
+            self.add_widget( widget)    
 
-        
-    def draw(self, screen):
-        Activity.draw(self, screen)
+        widget = menu.TextButtonWidget( "Adios", font, (200, 200+index*30))
+        widget.onclick = self.adios
+        self.add_widget( widget)
 
-        img = resources.get("spinner1")
+        #self.bg = config['bg']
+
+    def make_level_callback(self, levelnum):
+        def callback():
+            self.start_level( levelnum)
+        return callback
         
-        screen.blit( img, (500,400))
+    def start_level(self, levelnum):
+        self.controller.start_activity(GameplayActivity, {"level": self.controller.level_path(levelnum)})
         
-        self.a.draw( screen, (100,60), (500,100))
-        self.a.draw( screen, (600,60), (700,260))
-        self.b.draw( screen, (80,300), (480,200))
-        self.b.draw( screen, (700,300), (550,500))
-        self.c.draw( screen, (100,500), (400,600))
-        self.c.draw( screen, (400,500), (500,700))
+    def adios(self):
+        print "adios"
+        self.finish()
+
+    def update(self, timestep):
+        menu.MenuActivity.update(self, timestep)
+        #self.bg.update( timestep)        
+    
+    def handle_event(self, event):
+        event_handled = False
+        
+        if event.type == KEYUP:
+            if event.key == pygame.K_a:
+                print self._widgets
+
+        if not event_handled:
+            menu.MenuActivity.handle_event(self, event)
             
+    def draw(self, screen):
+        #self.bg.draw( screen)
+        menu.MenuActivity.draw(self, screen)
+
 def main():
     gc = GameController()
     gc.startup()
     
-    gc.start_activity(GameplayActivity, {"level": gc.level_path(3)})
+    #gc.start_activity(GameplayActivity, {"level": gc.level_path(3)})
     #gc.start_activity(TestAct, {"level": gc.level_path(2)})
-    running = 1
+    gc.start_activity(LevelSelectMenu, None)
+    #gc.start_activity(TestBed, None)
+    running = True
     while running:
 
         #process events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = 0
+                running = False
 
             else:
                 gc.handle_event(event)

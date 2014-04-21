@@ -1,8 +1,6 @@
 import pygame
-import random
 from managers import resources, settings
-import time
-import os
+import random, time, os, fnmatch
 
 class GameController(object):
     
@@ -19,6 +17,7 @@ class GameController(object):
         settings.load('config.txt')
         resources.load(settings.get("res_dir", "res"),
                              settings.get("res_list", "resources.txt"))
+        self.level_dir = settings.get("level_dir", "lev")
 
         w = settings.get("screenw", 400)
         h = settings.get("screenh", 400)
@@ -34,14 +33,26 @@ class GameController(object):
 
     def level_path(self, level):
         level = str(level)+".xml"
-        return os.path.join( settings.get("level_dir", "lev"), level)
+        return os.path.join( self.level_dir, level)
  
     def cleanup(self):
         pygame.quit()
         pass
+        
+    def get_level_list(self):
+        files = os.listdir("levels")
+        names = []
+        for x in files:
+            if fnmatch.fnmatch( x, "*.xml"):
+                try:
+                    base = int( os.path.splitext( x)[0])
+                    names.append( base)
+                except ValueError:#just ignore filenames that aren't numbers
+                    pass
+        return names
 
     def draw(self):
-        self.screen.fill((100,200,255) )
+        self.screen.fill((0,0,0) )
         top = self._top_activity()
         if top is not None:
             top.draw(self.screen)

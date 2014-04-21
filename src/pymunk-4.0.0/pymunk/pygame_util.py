@@ -162,6 +162,7 @@ def _draw_segment(surface, segment):
         color = pygame.color.THECOLORS["lightgrey"]
     else:
         color = pygame.color.THECOLORS["blue"]
+    #print body.angle, p1, p2
     pygame.draw.lines(surface, color, False, [p1,p2], max(int(segment.radius*2),1))
     
 def _draw_constraint(surface, constraint):

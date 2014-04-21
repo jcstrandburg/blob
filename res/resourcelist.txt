@@ -29,4 +29,5 @@ image, spinner3, bounceplat.png
 
 #other stuff
 image, gravball, gravball.png
-
+image, antigravball, antigravball.png
+image, magnet, magball.png
