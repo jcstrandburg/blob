@@ -24,7 +24,7 @@
 	<gravball mode='push' x='300' y='120' size='15' wellsize='50'/>
 	
 	<spinner mode='drag' x='650' y='100' length='70' angle='2.0' material='0'/>	
-	<forcefield x='95q' y='650' w='650' h='90' forcex='-100' forcey='1'/>
+	<forcefield x='95' y='650' w='650' h='90' forcex='-100' forcey='1'/>
 	
 
 	<segment x1='550' y1='120' x2='550' y2='650' material='0'/>

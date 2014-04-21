@@ -75,6 +75,27 @@ class PlatformRenderer(object):
             for y in xrange( int(v2[1]-v1[1])):
                 img = self.yslices[y%len(self.yslices)]
                 screen.blit( img, (int(v1[0]+slope*y-img.get_width()/2), int(v1[1]+y)))
+
+
+class SpinnerRenderer(object):
+    def __init__(self, image):
+        self.image = image
+        self.transforms = {}
+        
+    def draw(self, screen, rotation, scale):
+        try:
+            scaled_rots = self.transforms[scale]
+        except KeyError:
+            scaled_rots = {}
+            self.transforms[scale] = scaled_rots
+    
+        rotation = int(rotation)/10
+        try:
+            img = scaled_rots[rotation]
+        except KeyError:
+            img = pygame.transform.rotozoom(baseimg[material], angle, scale)
+            scaled_rots[rotation] = img
+
     
 class GameplayActivity(Activity):
 
@@ -246,7 +267,7 @@ class GameplayActivity(Activity):
         self.space.add_collision_handler( COLL_PLAYER, COLL_VICTORY, pre_solve=self.player_victory_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_ENEMY, pre_solve=self.player_enemy_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_SEGMENT, pre_solve=self.player_segment_collide)
-        self.space.add_collision_handler( COLL_PLAYER, COLL_SPINNER, post_solve=self.player_spinner_collide)
+        self.space.add_collision_handler( COLL_PLAYER, COLL_SPINNER, pre_solve=self.player_spinner_collide)
 
         self.make_player( (100, 100))    
         self.gravballs = []
@@ -405,6 +426,10 @@ class GameplayActivity(Activity):
         self.time += timestep
         pos = pygame.mouse.get_pos()
         self.mousepos = Vec2d( pos[0], 750-pos[1])
+
+
+        pressed = pygame.mouse.get_pressed()
+
         
         speed = self.player.velocity.get_length()
         self.max_speed = max(self.max_speed, speed)
@@ -432,8 +457,9 @@ class GameplayActivity(Activity):
             e.velocity = Vec2d( e.dir*100, e.velocity[1])
             
         for ff in self.forcefields:
-            ff.imgoffset += ff.fieldforce*3*timestep
+            ff.imgoffset += ff.fieldforce*5*timestep
             if ff.point_query( self.player.position):
+                self.player_launchable = True
                 self.player.apply_impulse( ff.fieldforce*FORCEFIELD_STRENGTH*timestep)
         
         for s in self.spinners:
@@ -592,7 +618,12 @@ class GameplayActivity(Activity):
                 angle = s.angle
                 material = s.material
                 scale = s.length/60.0
-                img = pygame.transform.rotozoom(baseimg[material], angle*conversion, scale)
+
+
+                angle = int(angle*conversion)
+                angle = angle/5 * 5
+
+                img = pygame.transform.rotozoom(baseimg[material], angle, scale)
                 offset = 0.5*Vec2d( img.get_width(), img.get_height())
                 pos = (pos-offset).int_tuple
                 screen.blit( img, pos)

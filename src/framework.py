@@ -40,9 +40,8 @@ class GameController(object):
  
     def cleanup(self):
         print "calling pygame.quit"
-        print "actually we're not calling pygame.quit because if freezes for some stupid reason"
-        #pygame.quit()
-        print "done"
+        pygame.quit()
+        print "done, calling sys.exit"
         sys.exit()
         
     def get_level_list(self):
@@ -55,6 +54,7 @@ class GameController(object):
                     names.append( base)
                 except ValueError:#just ignore filenames that aren't numbers
                     pass
+        names.sort()
         return names
 
     def draw(self):

@@ -18,7 +18,6 @@ class LevelSelectMenu(menu.MenuActivity):
         font = pygame.font.Font(None, 36)
     
         levels = self.controller.get_level_list()
-        levels.sort()
         for index, lev in enumerate( levels):
             widget = menu.TextButtonWidget( "Level "+str(lev), font, (200, 100+index*30))
             widget.onclick = self.make_level_callback( lev)
