@@ -133,12 +133,17 @@ class GameplayActivity(Activity):
         field.collision_type = COLL_FORCEFIELD
         field.center = Vec2d( x+w/2, y+h/2)
         field.layers = 0
+
+        field.topleft = Vec2d(x,y+h)
+        field.imgoffset = Vec2d(0,0)
+        field.dimensions = (w,h)
+
         self.space.add( field)
         self.forcefields.append( field)
 
     def make_wall(self, v1, v2, material=0, size=6):
-        evalues = [0.12, 0.99, 0.12]
-        fvalues = [2.0, 0.5, 0.1, 2.0]
+        evalues = [0.12, 0.99, 0.12, 0.01]
+        fvalues = [2.0, 0.5, 0.1, 2.0, 3.0]
         colors =  [ (255,50,50), (50,255,50), (50,50,255), (255,0,255)]
 
         wall = pymunk.Segment( self.space.static_body, v1, v2, size)
@@ -174,6 +179,7 @@ class GameplayActivity(Activity):
         self.player.shape = shape
         
     def make_gravball(self, pos, mode, size, wellsize):
+
         puller = pymunk.Body(pymunk.inf,pymunk.inf)
         puller.position = pos
         puller.size = size
@@ -181,7 +187,10 @@ class GameplayActivity(Activity):
         puller.wellsize = wellsize
         puller.timer = -.1
 
-        circ = pymunk.Circle( puller, math.pow(size, .7))
+        if mode == "push":
+            puller.strength *= -1
+
+        '''circ = pymunk.Circle( puller, math.pow(size, .7))
         circ.friction = 0.05
         circ.elasticity = 0.05
         circ.collision_type = COLL_GRAVBALL
@@ -191,9 +200,9 @@ class GameplayActivity(Activity):
             puller.strength *= -1
             circ.color = (255,130,0)
         else:
-            circ.color = (170,0,200)
+            circ.color = (170,0,200)'''
 
-        self.space.add( circ)
+        #self.space.add( circ)
         self.gravballs.append( puller)
         return puller
 
@@ -237,6 +246,7 @@ class GameplayActivity(Activity):
         self.space.add_collision_handler( COLL_PLAYER, COLL_VICTORY, pre_solve=self.player_victory_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_ENEMY, pre_solve=self.player_enemy_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_SEGMENT, pre_solve=self.player_segment_collide)
+        self.space.add_collision_handler( COLL_PLAYER, COLL_SPINNER, post_solve=self.player_spinner_collide)
 
         self.make_player( (100, 100))    
         self.gravballs = []
@@ -322,7 +332,12 @@ class GameplayActivity(Activity):
         pos = arbiter.contacts[0].position
         player.collision_type = 0#prevent this function from being called again until the player launches again
         space.add_post_step_callback(self.stick_player_to_magnet, player.body, spinner.body, pos, self.space)
+        self.player_launchable = True
 
+        return True
+
+    def player_spinner_collide(self, space, arbiter):
+        self.player_launchable = True
         return True
 
     def player_victory_collide(self, space, arbiter):
@@ -336,6 +351,7 @@ class GameplayActivity(Activity):
         
     def player_enemy_collide(self, space, arbiter):
         player, enemy = arbiter.shapes
+        self.player_launchable = True
         playerspeed = player.body.velocity.get_length()
         speeddiff = (player.body.velocity - enemy.body.velocity).get_length()
         print playerspeed, speeddiff
@@ -349,6 +365,8 @@ class GameplayActivity(Activity):
         
     def player_segment_collide(self, space, arbiter):
         player, seg = arbiter.shapes
+        self.player_launchable = True
+
         if seg.material == 3:
             self.kill_player()
         if arbiter.contacts[0].normal[1] < 0:
@@ -367,7 +385,7 @@ class GameplayActivity(Activity):
         self.mousepos = Vec2d(0,0)
         self.complex_drawing = False
         self.max_speed = 0
-        self.player_grounded = True
+        self.player_launchable = True
         self.drag_joint = None
         self.time = 0.0
         self.segment_renderers = [
@@ -394,7 +412,6 @@ class GameplayActivity(Activity):
             newspeed = (1-timestep)*1000.+timestep*speed
             self.player.velocity *= newspeed/speed
         
-        
         if self.charging:
             self.charge_cap += CHARGERATE*timestep
             if self.charge_cap > MAXCHARGE:
@@ -415,6 +432,7 @@ class GameplayActivity(Activity):
             e.velocity = Vec2d( e.dir*100, e.velocity[1])
             
         for ff in self.forcefields:
+            ff.imgoffset += ff.fieldforce*3*timestep
             if ff.point_query( self.player.position):
                 self.player.apply_impulse( ff.fieldforce*FORCEFIELD_STRENGTH*timestep)
         
@@ -428,23 +446,25 @@ class GameplayActivity(Activity):
             if g.timer > 0:
                 diff = g.position - self.player.position
                 dist = diff.get_length()
-                if dist < g.wellsize:                    
-                    mag = (g.strength)/(math.pow(dist,1.25)+30)*timestep
+                if dist < g.wellsize:
+                    d = max( math.pow(dist,1.25), 150)
+                    mag = (g.strength)/d*timestep
                     force = diff*mag/dist
                     self.player.apply_impulse( force)
+                    self.player_launchable = True
             else:
                 g.timer += timestep
         
-        self.player_grounded = False
         self.space.step( timestep)
             
     def handle_event(self, event):
         event_handled = False
         
-        if event.type == MOUSEBUTTONDOWN and event.button == 1:
-            self.charging = True
+        if event.type == MOUSEBUTTONDOWN and event.button == 3:
+            if self.player_launchable:
+                self.charging = True
 
-        elif event.type == MOUSEBUTTONUP and event.button == 1:            
+        elif event.type == MOUSEBUTTONUP and event.button == 3:            
             
             if self.charging:
                 #figure out the impulse vector
@@ -462,10 +482,11 @@ class GameplayActivity(Activity):
                 #finish up
                 self.player.apply_impulse( force)
                 self.charging = False
+                self.player_launchable = False
                 self.charge = 0.0
                 self.charge_cap = 0.0
 
-        elif event.type == MOUSEBUTTONDOWN and event.button == 3:
+        elif event.type == MOUSEBUTTONDOWN and event.button == 1:
         
             #deal with draggable spinners
             mousepos = pygame.mouse.get_pos()
@@ -476,18 +497,14 @@ class GameplayActivity(Activity):
                     self.grabbed = shape.body
                     mousebod = pymunk.Body()
                     mousebod.position = self.mousepos
-                    #joint = pymunk.PinJoint(mousebod, shape.body, mousepos)
-                    #joint = pymunk.DampedSpring(mousebod, shape.body, (0,0), shape.body.world_to_local(self.mousepos), 1.0, 1.5e28, 1e27)
-                    #joint = pymunk.PinJoint(mousebod, shape.body, (0,0), shape.body.world_to_local(self.mousepos))
                     joint = pymunk.PivotJoint(mousebod, shape.body, mousepos)
-                    #joint.error_bias = pow(1.0 - 0.05, 60.0)
-                    joint.max_force = 1e9
+                    joint.max_force = 2e9
                     self.space.add(joint)
                     self.drag_joint = joint
                     self.drag_body = mousebod
                     
 
-        elif event.type == MOUSEBUTTONUP and event.button == 3:
+        elif event.type == MOUSEBUTTONUP and event.button == 1:
 
             #release the grabbed spinner
             if self.grabbed is not None:
@@ -495,6 +512,7 @@ class GameplayActivity(Activity):
                 self.grabbed.angular_velocity = 0.0
                 self.grabbed.position = self.grabbed.home_pos
                 self.grabbed.shape.position = self.grabbed.position
+                self.grabbed.reset_forces()
                 self.grabbed = None
             
             if self.drag_joint is not None:
@@ -525,12 +543,8 @@ class GameplayActivity(Activity):
     def draw(self, screen):
         Activity.draw(self, screen)
         screen.fill( (50, 150, 250))
-        pymunk.pygame_util.draw( screen, self.space)
         pos = pygame.mouse.get_pos()
         
-        for ff in self.forcefields:
-            pygame.draw.line( screen, (255,255,255), pymunk.pygame_util.to_pygame( ff.center, screen), pymunk.pygame_util.to_pygame( ff.center+ff.fieldforce, screen))
-
         wavesize = 25
         begin = int(0.5*self.time*wavesize)%wavesize
         for g in self.gravballs:
@@ -544,8 +558,33 @@ class GameplayActivity(Activity):
                     for r in xrange(wavesize-begin, g.wellsize, wavesize):
                         if r > 0:
                             pygame.draw.circle( screen, (100,0,120), pos, r, 1)
+
+        if not self.complex_drawing:
+            pymunk.pygame_util.draw( screen, self.space)
+
+            for ff in self.forcefields:
+                pygame.draw.line( screen, (255,255,255), pymunk.pygame_util.to_pygame( ff.center, screen), pymunk.pygame_util.to_pygame( ff.center+ff.fieldforce, screen))
+
                             
         if self.complex_drawing:
+
+            img = resources.get("fieldbg")
+            for f in self.forcefields:
+
+                imgw = img.get_width()
+                imgh = img.get_height()
+                offset = (int(f.imgoffset[0])%imgw, int(f.imgoffset[1])%imgh)
+                topleft = pymunk.pygame_util.to_pygame(f.topleft, screen)
+                sub = screen.subsurface( (topleft[0], topleft[1], f.dimensions[0], f.dimensions[1]))
+                for x in xrange( -imgw, int(f.dimensions[0])+imgw, imgw):
+                    for y in xrange( -imgh, int(f.dimensions[1])+imgh, imgh):
+                        sub.blit( img, (x+offset[0], y-offset[1])) 
+
+            for s in self.segments:
+                self.draw_segment( screen, s.a, s.b, s.material)
+                v1 = s.a
+                v2 = s.b
+
             baseimg = [resources.get("spinner1"),resources.get("spinner2"), resources.get("spinner3")]
             conversion = 360/(2*math.pi)
             for s in self.spinners:
@@ -557,29 +596,18 @@ class GameplayActivity(Activity):
                 offset = 0.5*Vec2d( img.get_width(), img.get_height())
                 pos = (pos-offset).int_tuple
                 screen.blit( img, pos)
-        
-            for s in self.segments:
-                self.draw_segment( screen, s.a, s.b, s.material)
-                v1 = s.a
-                v2 = s.b
             
-            baseimg = [resources.get("gravball"), resources.get("antigravball")]
-            for g in self.gravballs:
-                pos = pymunk.pygame_util.to_pygame( g.position, screen)
-                if g.strength > 0:
-                    img = pygame.transform.smoothscale( baseimg[0], (int(g.shape.radius*2),int(g.shape.radius*2)))
-                else:
-                    img = pygame.transform.smoothscale( baseimg[1], (int(g.shape.radius*2),int(g.shape.radius*2)))                    
-                offset = Vec2d(img.get_width()/2, img.get_height()/2)
-                screen.blit( img, pos-offset)
-                
             baseimg = resources.get("magnet")
             for m in self.magnets:
                 pos = pymunk.pygame_util.to_pygame( m.position, screen)
                 img = pygame.transform.smoothscale( baseimg, (int(m.shape.radius*2), (int(m.shape.radius*2))))
                 offset = Vec2d(img.get_width()/2, img.get_height()/2)
                 screen.blit( img, pos-offset)
-                
+
+            baseimg = resources.get("player")
+            pos = pymunk.pygame_util.to_pygame( self.player.position, screen)
+            offset = Vec2d( baseimg.get_width()/2, baseimg.get_height()/2)
+            screen.blit( baseimg, pos-offset)
         
         pos = Vec2d( pygame.mouse.get_pos())
         ballpos = pymunk.pygame_util.to_pygame( self.player.position, screen)

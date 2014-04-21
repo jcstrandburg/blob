@@ -25,7 +25,7 @@
 	<spinner mode='drag' x='100' y='500' length='55' angle='0' speed='0.0' material='1'/>
 	
 
-	<victory x='350' y='50' w='50' h='50'/>
+	<victory x='500' y='50' w='50' h='50'/>
 
 </level>
 

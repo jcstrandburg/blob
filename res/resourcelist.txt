@@ -31,3 +31,5 @@ image, spinner3, bounceplat.png
 image, gravball, gravball.png
 image, antigravball, antigravball.png
 image, magnet, magball.png
+image, player, bob.png
+image, fieldbg, ffalt.png

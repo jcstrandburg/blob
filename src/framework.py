@@ -1,6 +1,6 @@
-import pygame
+import pygame, pygame.font
 from managers import resources, settings
-import random, time, os, fnmatch
+import random, time, os, fnmatch, sys
 
 class GameController(object):
     
@@ -9,7 +9,10 @@ class GameController(object):
 
     def startup(self):
 
-        pygame.init()
+        #pygame.init()
+        pygame.font.init()
+
+
         self._activities = [] #stack of activities, only the top is currently active
         self._pending = [] #list of activities waiting to be added to the stack
         self._time_stored = 0.0 #the amount of time that needs to be simulated in state changes
@@ -36,8 +39,11 @@ class GameController(object):
         return os.path.join( self.level_dir, level)
  
     def cleanup(self):
-        pygame.quit()
-        pass
+        print "calling pygame.quit"
+        print "actually we're not calling pygame.quit because if freezes for some stupid reason"
+        #pygame.quit()
+        print "done"
+        sys.exit()
         
     def get_level_list(self):
         files = os.listdir("levels")
@@ -84,6 +90,7 @@ class GameController(object):
                 newact = ActClass(self)
                 newact.on_create(config)
                 self._activities.append(newact)
+                print "adding new activity"
 
             #clear the list of pending activities
             del self._pending[:]
@@ -95,6 +102,7 @@ class GameController(object):
         #grab the top activity, then kill of this and any other finished activities
         top = self._top_activity()
         while top is not None and top.finished:
+            print "removing activity"
             top.pause()
             top.on_destroy()
             self._activities.pop()
