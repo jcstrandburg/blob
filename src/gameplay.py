@@ -76,7 +76,33 @@ class PlatformRenderer(object):
                 img = self.yslices[y%len(self.yslices)]
                 screen.blit( img, (int(v1[0]+slope*y-img.get_width()/2), int(v1[1]+y)))
 
+class SegmentRenderer(object):
+    slicesize = 29
 
+    def __init__(self, image, size):
+        self.image = image
+        
+    def draw( self, screen, v1, v2):
+        v1 = pymunk.pygame_util.to_pygame( v1, screen)
+        v2 = pymunk.pygame_util.to_pygame( v2, screen)
+        xdif = v2[0]-v1[0]
+        ydif = v2[1]-v1[1]
+    
+        if math.fabs(xdif) > math.fabs(ydif):
+            slope = float(ydif)/xdif
+            if xdif < 0:
+                v1, v2 = v2, v1
+            for x in xrange( int(v2[0]-v1[0])):
+                xpos, ypos = int(v1[0]+x), int(v1[1]+slope*x-self.slicesize/2)
+                screen.blit( self.image, (xpos, ypos), (xpos,ypos,1,self.slicesize))
+        else:
+            slope = float(xdif)/ydif
+            if ydif < 0:
+                v1, v2 = v2, v1
+            for y in xrange( int(v2[1]-v1[1])):
+                xpos, ypos = int(v1[0]+slope*y-self.slicesize/2), int(v1[1]+y)
+                screen.blit( self.image, (xpos, ypos), (xpos,ypos,self.slicesize,1))
+    
 class SpinnerRenderer(object):
     def __init__(self, image):
         self.image = image
@@ -100,8 +126,8 @@ class SpinnerRenderer(object):
 class GameplayActivity(Activity):
 
     def make_spinner(self, mode, pos, angle, speed, length, material=0):
-        evalues = [0.12, 0.99, 0.12]
-        fvalues = [1.5, 0.5, 0.1]
+        evalues = [0.12, 1.2, 0.12]
+        fvalues = [2.0, 0.5, 0.1]
         colors =  [ (255,50,50), (50,255,50), (50,50,255)]
 
         if mode == "free":
@@ -122,7 +148,8 @@ class GameplayActivity(Activity):
         if mode == "drag":
             spinner.draggable = True
 
-        shape = pymunk.Segment(spinner, (0,length), (0,-length), 9)
+        shape = pymunk.Segment(spinner, (0,length), (0,-length), length/8.5)
+        #shape = pymunk.Poly.create_box(spinner, (length/4.25, length*2))
         shape.elasticity = evalues[material]
         shape.friction = fvalues[material]
         shape.color = colors[material]
@@ -162,7 +189,7 @@ class GameplayActivity(Activity):
         self.space.add( field)
         self.forcefields.append( field)
 
-    def make_wall(self, v1, v2, material=0, size=6):
+    def make_wall(self, v1, v2, material=0, size=11):
         evalues = [0.12, 0.99, 0.12, 0.01]
         fvalues = [2.0, 0.5, 0.1, 2.0, 3.0]
         colors =  [ (255,50,50), (50,255,50), (50,50,255), (255,0,255)]
@@ -191,7 +218,7 @@ class GameplayActivity(Activity):
         ball.joints = []
 
         shape = pymunk.Circle(ball, radius)
-        shape.color = (255,255,255)
+        shape.color = (50,200,50)
         shape.elasticity = 1.0
         shape.friction = 0.5
         shape.collision_type = COLL_PLAYER
@@ -267,8 +294,15 @@ class GameplayActivity(Activity):
         self.space.add_collision_handler( COLL_PLAYER, COLL_VICTORY, pre_solve=self.player_victory_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_ENEMY, pre_solve=self.player_enemy_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_SEGMENT, pre_solve=self.player_segment_collide)
-        self.space.add_collision_handler( COLL_PLAYER, COLL_SPINNER, pre_solve=self.player_spinner_collide)
+        self.space.add_collision_handler( COLL_PLAYER, COLL_SPINNER, begin=self.player_collide_with_sound, pre_solve=self.player_spinner_collide)
 
+        self.space.add_collision_handler( COLL_PLAYER, COLL_SEGMENT, 
+            pre_solve=self.player_segment_collide,
+            begin=self.player_collide_with_sound,
+            #post_solve=self.player_segment_collide3,
+            seperate=self.player_segment_collide4
+        )
+        
         self.make_player( (100, 100))    
         self.gravballs = []
         self.spinners = []
@@ -384,16 +418,38 @@ class GameplayActivity(Activity):
             self.kill_player()
         return False
         
-    def player_segment_collide(self, space, arbiter):
+    def player_segment_collide(self, space, arbiter, *args, **kwargs):
         player, seg = arbiter.shapes
         self.player_launchable = True
-
+        
         if seg.material == 3:
             self.kill_player()
         if arbiter.contacts[0].normal[1] < 0:
             self.player_grounded = True
         return True
-            
+        
+    def player_collide_with_sound(self, space, arbiter, *args, **kwargs):
+        print "wat", self.junk
+        self.junk += 1        
+        self.player_launchable = True        
+        snd = resources.get("snd3")
+        snd.play()
+        
+        
+        return True
+        
+    def player_segment_collide3(self, space, arbiter, *args, **kwargs):
+        print "ok", self.junk
+        self.junk += 1        
+        self.player_launchable = True        
+        return True
+
+    def player_segment_collide4(self, space, arbiter, *args, **kwargs):
+        print "y'all got some crack", self.junk
+        self.junk += 1        
+        self.player_launchable = True        
+        return True
+        
     def kill_player(self):
             self.space.remove( self.player, self.player.shape)
         
@@ -409,10 +465,14 @@ class GameplayActivity(Activity):
         self.player_launchable = True
         self.drag_joint = None
         self.time = 0.0
+        self.junk = 0
         self.segment_renderers = [
-            PlatformRenderer((resources.get( "land1"), resources.get( "land1_vert"))),
-            PlatformRenderer((resources.get( "land2"), resources.get( "land2_vert"))),
-            PlatformRenderer((resources.get( "land3"), resources.get( "land3_vert"))),
+            SegmentRenderer(resources.get("woodtex"),11),
+            SegmentRenderer(resources.get("oozetex"),11),            
+            SegmentRenderer(resources.get("icetex"),11),
+            #PlatformRenderer((resources.get( "land1"), resources.get( "land1_vert"))),
+            #PlatformRenderer((resources.get( "land2"), resources.get( "land2_vert"))),
+            #PlatformRenderer((resources.get( "land3"), resources.get( "land3_vert"))),
             PlatformRenderer((resources.get( "land4"), resources.get( "land4_vert"))),
         ]
         
@@ -559,6 +619,12 @@ class GameplayActivity(Activity):
                 self.complex_drawing = not self.complex_drawing
             elif event.key == K_z:
                 self.reposition_player( self.mousepos, (0,0))
+            elif event.key == K_w:
+                SegmentRenderer.slicesize += 1
+                print SegmentRenderer.slicesize
+            elif event.key == K_e:
+                SegmentRenderer.slicesize -= 1
+                print SegmentRenderer.slicesize            
 
         if not event_handled:
             Activity.handle_event(self, event)
@@ -568,7 +634,10 @@ class GameplayActivity(Activity):
             
     def draw(self, screen):
         Activity.draw(self, screen)
-        screen.fill( (50, 150, 250))
+        #screen.fill( (50, 150, 250))
+        img = resources.get("background")
+        screen.blit(img, (0,0))
+        
         pos = pygame.mouse.get_pos()
         
         wavesize = 25
@@ -585,9 +654,9 @@ class GameplayActivity(Activity):
                         if r > 0:
                             pygame.draw.circle( screen, (100,0,120), pos, r, 1)
 
-        if not self.complex_drawing:
-            pymunk.pygame_util.draw( screen, self.space)
+        pymunk.pygame_util.draw( screen, self.space)
 
+        if not self.complex_drawing:
             for ff in self.forcefields:
                 pygame.draw.line( screen, (255,255,255), pymunk.pygame_util.to_pygame( ff.center, screen), pymunk.pygame_util.to_pygame( ff.center+ff.fieldforce, screen))
 
@@ -621,7 +690,7 @@ class GameplayActivity(Activity):
 
 
                 angle = int(angle*conversion)
-                angle = angle/5 * 5
+                #angle = angle/5 * 5
 
                 img = pygame.transform.rotozoom(baseimg[material], angle, scale)
                 offset = 0.5*Vec2d( img.get_width(), img.get_height())

@@ -19,10 +19,14 @@
     <segment x1='0' y1='0' x2='750' y2='0' material='0'/>
 	
 	<spinner mode='drag' x='100' y='100' length='55' angle='0' speed='0.0' material='1'/>
-	<spinner mode='drag' x='300' y='200' length='55' angle='0' speed='0.0' material='1'/>
-	<spinner mode='drag' x='100' y='300' length='55' angle='0' speed='0.0' material='1'/>
-	<spinner mode='drag' x='300' y='400' length='55' angle='0' speed='0.0' material='1'/>
-	<spinner mode='drag' x='100' y='500' length='55' angle='0' speed='0.0' material='1'/>
+	<spinner mode='drag' x='100' y='250' length='55' angle='0' speed='0.0' material='1'/>
+	<spinner mode='drag' x='100' y='400' length='55' angle='0' speed='0.0' material='1'/>
+	<spinner mode='drag' x='100' y='550' length='55' angle='0' speed='0.0' material='1'/>
+	
+	<spinner mode='drag' x='300' y='175' length='55' angle='0' speed='0.0' material='1'/>
+	<spinner mode='drag' x='300' y='325' length='55' angle='0' speed='0.0' material='1'/>
+	<spinner mode='drag' x='300' y='475' length='55' angle='0' speed='0.0' material='1'/>
+
 	
 
 	<victory x='500' y='50' w='50' h='50'/>

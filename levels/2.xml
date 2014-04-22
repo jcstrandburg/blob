@@ -22,9 +22,14 @@
 	<segment x1='500' y1='425' x2='750' y2='425' material='0'/>
     <segment x1='0'   y1='425' x2='300' y2='425' material='0'/>
     <segment x1='300' y1='625' x2='650' y2='625' material='2'/>
-    <segment x1='400' y1='480' x2='500' y2='425' material='0'/>
-	<segment x1='350' y1='480' x2='400' y2='480' material='0'/>
 	
+	<!--the ramp-->
+    <segment x1='400' y1='500' x2='525' y2='425' material='0'/>	
+	<segment x1='350' y1='500' x2='400' y2='500' material='0'/>
+	<segment x1='350' y1='500' x2='500' y2='425' material='0'/>
+	<forcefield x='350' y='425' w='100' h='50' forcex='0' forcey='-10'/>
+	
+	<!--the ice platform-->
 	<segment x1='320' y1='300' x2='575' y2='300' material='2'/>
 	<segment x1='320' y1='250' x2='320' y2='300' material='2'/>
 	<segment x1='575' y1='250' x2='575' y2='300' material='2'/>
@@ -34,7 +39,7 @@
 	<magnet x='200' y='150' size='20'/>
 	<victory x='400' y='200' w='100' h='100'/>
 
-	<gravball mode='pull' x='375' y='500' size='28' wellsize='100'/>
+	<gravball mode='pull' x='375' y='500' size='25' wellsize='100'/>
 
 
 </level>
