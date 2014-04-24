@@ -137,19 +137,10 @@ class GameplayActivity(Activity):
         
     def on_create(self, config):
         Activity.on_create(self, config)
-        self.charging = False
-        self.charge = 0
-        self.charge_cap =  0
-        self.grabbed = None
-        self.mousepos = Vec2d(0,0)
-        self.complex_drawing = False
-        self.max_speed = 0
-        self.player_launchable = True
-        self.drag_joint = None
-        self.player_floating = False
-        self.player_float = 6000
-        self.time = 0.0
-        self.junk = 0
+
+        self.screen_size = pygame.display.get_surface().get_size()
+        print self.screen_size
+        
         self.segment_renderers = [
             SegmentRenderer(resources.get("woodtex"),11),
             SegmentRenderer(resources.get("oozetex"),11),            
@@ -565,7 +556,21 @@ class GameplayActivity(Activity):
         
     def reload_level(self):
  
-        #reset junk
+        #reset various fields
+        self.charging = False
+        self.charge = 0
+        self.charge_cap =  0
+        self.grabbed = None
+        self.mousepos = Vec2d(0,0)
+        self.complex_drawing = False
+        self.max_speed = 0
+        self.player_launchable = True
+        self.drag_joint = None
+        self.player_floating = False
+        self.player_float = 6000
+        self.time = 0.0
+
+        #reset the space
         self.space = pymunk.Space()
         self.space.gravity = 0, GRAVITY
         self.space.add_collision_handler( COLL_PLAYER, COLL_MAGNET, post_solve=self.player_magnet_collide)
@@ -576,6 +581,7 @@ class GameplayActivity(Activity):
         self.space.add_collision_handler( COLL_PLAYER, COLL_SPINNER, begin=self.player_collide_with_sound, pre_solve=self.player_spinner_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_SEGMENT, pre_solve=self.player_segment_collide, begin=self.player_collide_with_sound)
         
+        #reset the game objects
         self.make_player( (100, 100))    
         self.gravballs = []
         self.spinners = []
@@ -702,11 +708,10 @@ class GameplayActivity(Activity):
         return True
         
     def player_collide_with_sound(self, space, arbiter, *args, **kwargs):
-        print "wat", self.junk, self.player.velocity.get_length()
-        self.junk += 1        
         self.player_launchable = True        
-        snd = resources.get("snd3")
-        snd.play()        
+        if self.player.velocity.get_length() >= 50.0:
+            snd = resources.get("snd3")
+            snd.play()        
         return True
         
     def kill_player(self):

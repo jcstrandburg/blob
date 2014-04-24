@@ -7,6 +7,48 @@ from framework import GameController, Activity, EventListener, resources
 from gameplay import GameplayActivity
 import menu
 
+class MainMenuActivity(menu.MenuActivity):
+    def __init__(self, controller):
+        menu.MenuActivity.__init__(self, controller)
+    
+    def on_create(self, config):
+        menu.MenuActivity.on_create(self, config)
+        font = pygame.font.Font(None, 36)
+    
+        widget = menu.TextButtonWidget( "Select Level", font, (200, 100))
+        widget.onclick = self.do_select_level
+        self.add_widget( widget)    
+
+        widget = menu.TextButtonWidget( "How To Play", font, (200, 200))
+        widget.onclick = self.do_how_to_play
+        self.add_widget( widget)    
+
+        widget = menu.TextButtonWidget( "Adios", font, (200, 300))
+        widget.onclick = self.finish
+        self.add_widget( widget)    
+
+    def do_select_level(self):
+        self.controller.start_activity( LevelSelectMenu, None)
+
+    def do_how_to_play(self):
+        print "insert tutorial here"
+
+    def update(self, timestep):
+        menu.MenuActivity.update(self, timestep)
+    
+    def handle_event(self, event):
+        event_handled = False
+        
+        if event.type == KEYUP:
+            if event.key == pygame.K_a:
+                print self._widgets
+
+        if not event_handled:
+            menu.MenuActivity.handle_event(self, event)
+            
+    def draw(self, screen):
+        menu.MenuActivity.draw(self, screen)
+
 class LevelSelectMenu(menu.MenuActivity):
     def __init__(self, controller):
         menu.MenuActivity.__init__(self, controller)
@@ -84,7 +126,7 @@ def main():
     #gc.start_activity(GameplayActivity, {"level": gc.level_path(3)})
     #gc.start_activity(TestAct, {"level": gc.level_path(2)})
     #gc.start_activity(LevelSelectMenu, None)
-    gc.start_activity(TestAct, None)
+    gc.start_activity(MainMenuActivity, None)
     running = True
     while running:
 
