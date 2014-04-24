@@ -24,10 +24,7 @@
     <segment x1='300' y1='625' x2='650' y2='625' material='2'/>
 	
 	<!--the ramp-->
-    <segment x1='400' y1='500' x2='525' y2='425' material='0'/>	
-	<segment x1='350' y1='500' x2='400' y2='500' material='0'/>
-	<segment x1='350' y1='500' x2='500' y2='425' material='0'/>
-	<forcefield x='350' y='425' w='100' h='50' forcex='0' forcey='-10'/>
+    <segment x1='360' y1='500' x2='500' y2='425' material='0'/>	
 	
 	<!--the ice platform-->
 	<segment x1='320' y1='300' x2='575' y2='300' material='2'/>

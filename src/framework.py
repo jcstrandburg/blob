@@ -1,6 +1,8 @@
 import pygame
 import random, time, os, fnmatch, sys
 
+from animation import AnimatedImage
+
 class ResourceManager(object):
     _resources = {} #dictionary of actual resource objects, indexed by uri's
     _preloads = {} #dictionary of resource uri's and 
@@ -194,7 +196,7 @@ class GameController(object):
             ticks = self.clock.tick()
             timestep = float(ticks)/1000
             self._time_stored += timestep
-            pygame.display.set_caption( str(self.clock.get_fps()))
+            #pygame.display.set_caption( str(self.clock.get_fps())) #this seems to cause a memory leak or something, causing the game to hange on pygame.quit
 
         #force the top activity to resume and do an update
         if top is not None:

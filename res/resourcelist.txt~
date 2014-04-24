@@ -7,10 +7,12 @@ image, menubg, menubg.png
 #some sounds
 sound, snd1, button-10.wav
 sound, snd2, button-2.wav
+sound, snd3, skwish.wav
 
 #animation shit
 anim, testani, anim.ani
 anim, otherani, anim2.ani
+image, animimage, anim.ani
 
 #terrain junk
 image, land1, brick.png
@@ -23,13 +25,19 @@ image, land4, fire.png
 image, land4_vert, firev.png
 
 #spinners
-image, spinner2, iceplat.png
+image, spinner3, iceplat.png
 image, spinner1, woodplat.png
-image, spinner3, bounceplat.png
+image, spinner2, bounceplat.png
 
 #other stuff
 image, gravball, gravball.png
 image, antigravball, antigravball.png
 image, magnet, magball.png
 image, player, bob.png
-image, fieldbg, ff.png
+image, fieldbg, ffalt.png
+image, background, bg2.png
+
+#texture backgrounds
+image, woodtex, woodmat.png
+image, oozetex, oozemat.png
+image, icetex, icemat.png

@@ -12,6 +12,7 @@ sound, snd3, skwish.wav
 #animation shit
 anim, testani, anim.ani
 anim, otherani, anim2.ani
+image, animimage, anim.png
 
 #terrain junk
 image, land1, brick.png

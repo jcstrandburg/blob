@@ -57,14 +57,34 @@ class LevelSelectMenu(menu.MenuActivity):
         #self.bg.draw( screen)
         menu.MenuActivity.draw(self, screen)
 
+class TestAct(Activity):
+    def __init__(self, controller):
+        Activity.__init__(self, controller)
+
+    def on_create(self, config):
+        self.junk = resources.get("testani").get_new_handle()
+
+    def update( self, timestep):
+        Activity.update( self, timestep)
+        self.junk.cycle( timestep)
+
+    def draw(self, screen):
+        Activity.draw( self, screen)
+        img = self.junk.get_current_frame()
+        img2 = resources.get("animimage")
+        pos = pygame.mouse.get_pos()
+        screen.blit(img, pos)
+        screen.blit(img2, (pos[0], pos[1]+50))
+
+
 def main():
     gc = GameController()
     gc.startup()
     
     #gc.start_activity(GameplayActivity, {"level": gc.level_path(3)})
     #gc.start_activity(TestAct, {"level": gc.level_path(2)})
-    gc.start_activity(LevelSelectMenu, None)
-    #gc.start_activity(TestBed, None)
+    #gc.start_activity(LevelSelectMenu, None)
+    gc.start_activity(TestAct, None)
     running = True
     while running:
 

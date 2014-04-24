@@ -1,15 +1,13 @@
 import pygame
 import os
-import managers
 
 class AnimatedImage(object):
 
     def __init__(self, filepath):
-        pygame.sprite.Sprite.__init__(self)
         anifile = file(filepath)
         pathbase = os.path.split(filepath)[0]
         imgpath = anifile.readline().strip()
-        self._imgsrc = pygame.image.load(os.path.join(pathbase, imgpath)).convert()
+        self._imgsrc = pygame.image.load(os.path.join(pathbase, imgpath)).convert_alpha()
         self._numframes = int(anifile.readline())
         self._frame_lengths = []
         self._frame_images = []
@@ -19,12 +17,8 @@ class AnimatedImage(object):
         frame_height = self._imgsrc.get_height()
         for i in xrange(0, self._imgsrc.get_width(), frame_width):
             r = (i, 0, frame_width, frame_height)
-            frame = pygame.Surface((frame_width, frame_height))
-            frame.blit( self._imgsrc, (0,0), r)
-            #frame = self._imgsrc.subsurface( r)
+            frame = self._imgsrc.subsurface( r)
             self._frame_images.append( frame)
-            
-            #self._frame_images.append(self._imgsrc.subsurface(r).copy())
 
         #load the frame length intervals
         self._frame_lengths = anifile.readline().split()
