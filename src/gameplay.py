@@ -1,10 +1,9 @@
 import pygame
 import math
 from pygame.locals import *
-from framework import GameController, Activity, EventListener
+from framework import GameController, Activity, EventListener, resources
 import random
 import os, sys
-from managers import resources
 
 current_path = os.getcwd()
 sys.path.insert(0, os.path.join( current_path, "src/pymunk-4.0.0" ) )

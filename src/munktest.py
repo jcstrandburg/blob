@@ -1,13 +1,11 @@
 import pygame
-import math
 from pygame.locals import *
-from framework import GameController, Activity, EventListener
-import random
+
+import math, random, os, sys
+
+from framework import GameController, Activity, EventListener, resources
 from gameplay import GameplayActivity
-import os, sys
-from managers import resources
 import menu
-#from testbed import TestBed
 
 class LevelSelectMenu(menu.MenuActivity):
     def __init__(self, controller):
