@@ -42,6 +42,15 @@ GAME_OVER = 1
 GAME_WON = 2
 GAME_PAUSE = 3
 
+LAYER_STATICS = 1
+LAYER_DYNAMICS = 2
+LAYER_PARTICLES = 4
+
+PLAYER_PARTICLE_COLOR = (100,200,100)
+ENEMY_PARTICLE_COLOR = (200,50,50)
+
+
+
 def get_attrib(attribs, key, default=None, convert=None):
     '''helper function for fetching attributes from xml elements'''
     try:
@@ -163,7 +172,7 @@ class GameplayActivity(Activity):
         self.filename = config["level"]
         self.level_elements = ET.parse( self.filename).getroot()
         self.reload_level()
-        self.show_status_text( False, 3.0, [(50, "Welcome to the jungle motherfucker")])        
+        self.show_status_text( False, 3.0, [(50, "Insert level load message")])
         
     def update(self, timestep):
         Activity.update(self, timestep)
@@ -181,7 +190,7 @@ class GameplayActivity(Activity):
             self.status_offset += STATUS_SCROLL_SPEED*timestep
         
         #bail out now if the game is paused
-        if self.game_mode != GAME_NORMAL:
+        if self.game_mode == GAME_PAUSE:
             return None        
         
         #enforce terminal velocity on player
@@ -212,7 +221,6 @@ class GameplayActivity(Activity):
             self.drag_body.reset_forces()
 
         for e in self.enemies:
-            print e.dir, e.velocity, e.limits
             if (e.dir > 0 and e.position[0] > e.limits[1]) or (e.dir < 0 and e.position[0] < e.limits[0]):
                 e.dir *= -1
             e.velocity = Vec2d( e.dir*100, e.velocity[1])
@@ -222,6 +230,13 @@ class GameplayActivity(Activity):
             if ff.point_query( self.player.position):
                 self.player_launchable = True
                 self.player.apply_impulse( ff.fieldforce*FORCEFIELD_STRENGTH*timestep)
+
+        #do particle decay
+        for p in self.particles:
+            p.life -= timestep
+            if p.life <= 0:
+                self.space.remove( p, p.shape)
+                self.particles.remove( p)
 
         #force any draggable spinners to stop moving, reduces jitter and stuff
         for s in self.spinners:
@@ -353,13 +368,8 @@ class GameplayActivity(Activity):
             elif event.key == K_b:
                 self.player_float -= 100
                 print self.player_float
-            elif event.key == K_u:
-                self.show_status_text( False, -1, (50, "Game Paused"))
-            elif event.key == K_i:
-                self.show_status_text( False, -1, (50, "You win, congrats"))
-            elif event.key == K_o:
-                self.show_status_text( False, -1, [(50, "You be dead"), (25, "Better luck next time dumbass")])
-            
+            elif event.key == K_p:
+                self.make_particles( self.mousepos, 20, PLAYER_PARTICLE_COLOR)
 
         if not event_handled:
             Activity.handle_event(self, event)
@@ -419,6 +429,12 @@ class GameplayActivity(Activity):
                     offset = Vec2d(img.get_width()/2, img.get_height()/2)
                     screen.blit( img, pos-offset)
             
+            #draw particles
+            for p in self.particles:
+                pos = pymunk.pygame_util.to_pygame( p.position, screen)
+                pygame.draw.circle(screen, p.color, pos, 2)
+    
+
             #draw magnets
             baseimg = resources.get("magnet")
             for m in self.magnets:
@@ -555,6 +571,7 @@ class GameplayActivity(Activity):
         shape.friction = fvalues[material]
         shape.color = colors[material]
         shape.collision_type = COLL_SPINNER
+        shape.layers = LAYER_DYNAMICS | LAYER_PARTICLES
         spinner.shape = shape
         
         rot_body = pymunk.Body()
@@ -565,6 +582,24 @@ class GameplayActivity(Activity):
         self.spinners.append( spinner)
         return spinner
     
+    def make_particles(self, pos, number, color):
+        for i in xrange(number):
+            body = pymunk.Body( 0.1, pymunk.inf)
+            body.position = pos
+            body.velocity = Vec2d( random.randint(-200,200), random.randint(-200,200))
+            body.color = color
+            body.life = random.uniform( 0.5, 2.0)
+
+            shape = pymunk.Circle( body, 0.75)
+            shape.color = color
+            shape.layers = LAYER_PARTICLES
+            shape.elasticity = 0.7
+            shape.friction = 0.7
+
+            body.shape = shape
+            self.space.add( body, shape)
+            self.particles.append( body)
+
     def make_victory(self, x, y, w, h):
         points = [(x,y), (x+w,y), (x+w,y+h), (x,y+h)]
         vic = pymunk.Poly( self.space.static_body, points)
@@ -572,6 +607,7 @@ class GameplayActivity(Activity):
         vic.collision_type = COLL_VICTORY
         vic.topleft = Vec2d(x,y+h)
         vic.dimensions = Vec2d(w,h)
+        vic.layers = LAYER_DYNAMICS
         self.space.add( vic)
         self.victories.append(vic)
         return vic
@@ -603,6 +639,7 @@ class GameplayActivity(Activity):
         wall.color = colors[material]
         wall.collision_type = COLL_SEGMENT
         wall.material = material
+        wall.layers = LAYER_STATICS | LAYER_PARTICLES
 
         self.space.add( wall)
         self.segments.append(wall)
@@ -627,6 +664,8 @@ class GameplayActivity(Activity):
         shape.elasticity = 1.0
         shape.friction = 0.5
         shape.collision_type = COLL_PLAYER
+        shape.layers = LAYER_STATICS | LAYER_DYNAMICS
+
         self.space.add(player, shape)
         self.player = player
         self.player.shape = shape
@@ -655,6 +694,8 @@ class GameplayActivity(Activity):
         circ.color = (180,180,180)
         circ.elasticity=0.01
         circ.collision_type = COLL_MAGNET
+        circ.layers = LAYER_STATICS
+
         body.shape = circ
         self.space.add( circ)
         self.magnets.append( body)
@@ -673,6 +714,8 @@ class GameplayActivity(Activity):
         square.elasticity = 0.5
         square.friction = 0.0
         square.collision_type = COLL_ENEMY
+        square.layers = LAYER_STATICS
+
         body.shape = square
         
         self.enemies.append( body)
@@ -703,11 +746,9 @@ class GameplayActivity(Activity):
         #reset the space
         self.space = pymunk.Space()
         self.space.gravity = 0, GRAVITY
-        self.space.add_collision_handler( COLL_PLAYER, COLL_MAGNET, post_solve=self.player_magnet_collide)
-        self.space.add_collision_handler( COLL_PLAYER, COLL_GRAVBALL, post_solve=self.player_gravball_collide)
+        self.space.add_collision_handler( COLL_PLAYER, COLL_MAGNET, begin=self.player_collide_with_sound, post_solve=self.player_magnet_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_VICTORY, pre_solve=self.player_victory_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_ENEMY, pre_solve=self.player_enemy_collide)
-        self.space.add_collision_handler( COLL_PLAYER, COLL_SEGMENT, pre_solve=self.player_segment_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_SPINNER, begin=self.player_collide_with_sound, pre_solve=self.player_spinner_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_SEGMENT, pre_solve=self.player_segment_collide, begin=self.player_collide_with_sound)
         
@@ -720,6 +761,7 @@ class GameplayActivity(Activity):
         self.enemies = []
         self.forcefields = []
         self.victories = []
+        self.particles = []
 
         #create all of the elements
         for e in self.level_elements:
@@ -823,7 +865,9 @@ class GameplayActivity(Activity):
             print playerspeed, speeddiff
             self.space.remove( enemy, enemy.body)
             self.enemies.remove( enemy.body)
+            self.make_particles( self.player.position, 200, ENEMY_PARTICLE_COLOR)
         else:
+            self.make_particles( self.player.position, 200, PLAYER_PARTICLE_COLOR)
             self.kill_player()
         return False
         
@@ -839,7 +883,9 @@ class GameplayActivity(Activity):
         
     def player_collide_with_sound(self, space, arbiter, *args, **kwargs):
         self.player_launchable = True        
-        if self.player.velocity.get_length() >= 50.0:
+        vel = self.player.velocity.get_length()
+        if vel >= 75.0:
+            self.make_particles( self.player.position, int(vel/20), PLAYER_PARTICLE_COLOR)
             snd = resources.get("snd3")
             snd.play()        
         return True
@@ -848,7 +894,7 @@ class GameplayActivity(Activity):
         self.space.remove( self.player, self.player.shape)
         self.player.dead = True
         self.game_mode = GAME_OVER
-        self.show_status_text( True, -1.0, (50, "You suck you fuckin' loser"))
+        self.show_status_text( True, -1.0, (50, "Way to go dickhead"))
         
     def win_level(self):
         self.game_mode = GAME_WON
