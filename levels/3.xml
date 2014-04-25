@@ -36,7 +36,7 @@
 	<spinner mode='fixed' x='250' y='320' length='52' angle='0' speed='-1.5' material='1'/>
 	<spinner mode='fixed' x='380' y='325' length='52' angle='2' speed='-2.0' material='1'/>
 	<spinner mode='fixed' x='510' y='325' length='52' angle='4' speed='-2.5' material='1'/>
-	<spinner mode='fixed' x='400' y='475' length='55' angle='4' speed='6.0' material='1'/>
+	<spinner mode='fixed' x='400' y='475' length='70' angle='4' speed='6.0' material='1'/>
 	<victory x='100' y='400' w='100' h='100'/>
 
 </level>

@@ -130,7 +130,6 @@ class SpinnerRenderer(object):
         try:
             scaled_rots = self.transforms[scale]
         except KeyError:
-            print "caching new scale", scale
             scaled_rots = {}
             self.transforms[scale] = scaled_rots
 
@@ -140,7 +139,6 @@ class SpinnerRenderer(object):
         try:
             img = scaled_rots[rotation]
         except KeyError:
-            print "caching new rotation", rotation
             img = pygame.transform.rotozoom(self.image, rotation, scale)
             scaled_rots[rotation] = img
 
@@ -189,8 +187,8 @@ class GameplayActivity(Activity):
         if self.status_offset < 0.0:
             self.status_offset += STATUS_SCROLL_SPEED*timestep
         
-        #bail out now if the game is paused
-        if self.game_mode == GAME_PAUSE:
+        #bail out now if the game is paused (or the player won)
+        if self.game_mode == GAME_PAUSE or self.game_mode == GAME_WON:
             return None        
         
         #enforce terminal velocity on player
@@ -571,7 +569,7 @@ class GameplayActivity(Activity):
         shape.friction = fvalues[material]
         shape.color = colors[material]
         shape.collision_type = COLL_SPINNER
-        shape.layers = LAYER_DYNAMICS | LAYER_PARTICLES
+        shape.layers = LAYER_DYNAMICS
         spinner.shape = shape
         
         rot_body = pymunk.Body()
@@ -589,6 +587,7 @@ class GameplayActivity(Activity):
             body.velocity = Vec2d( random.randint(-200,200), random.randint(-200,200))
             body.color = color
             body.life = random.uniform( 0.5, 2.0)
+            body.apply_force( (0,30))#force to reduce gravity on particles
 
             shape = pymunk.Circle( body, 0.75)
             shape.color = color
