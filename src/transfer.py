@@ -21,9 +21,6 @@ COLL_GUMBA = 4
 class ProtoActivity(Activity):
 
     def addball(self):
-        #if ( self.ball is not None):
-        #    self.space.remove( self.ball, self.ball.body)
-
         mass = 10
         radius = 18
         inertia = pymunk.moment_for_circle(mass, 0, radius, (0,0))

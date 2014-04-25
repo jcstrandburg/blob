@@ -13,6 +13,8 @@ sound, snd3, skwish.wav
 anim, testani, anim.ani
 anim, otherani, anim2.ani
 image, animimage, anim.png
+anim, goalani, goal.ani
+anim, enemyani, sheep.ani
 
 #terrain junk
 image, land1, brick.png
@@ -28,12 +30,14 @@ image, land4_vert, firev.png
 image, spinner3, iceplat.png
 image, spinner1, woodplat.png
 image, spinner2, bounceplat.png
+image, spingear, gear.png
 
 #other stuff
 image, gravball, gravball.png
 image, antigravball, antigravball.png
 image, magnet, magball.png
 image, player, bob.png
+image, player_charging, squintybob.png
 image, fieldbg, ffalt.png
 image, background, bg2.png
 
@@ -41,3 +45,4 @@ image, background, bg2.png
 image, woodtex, woodmat.png
 image, oozetex, oozemat.png
 image, icetex, icemat.png
+image, voidtex, plasmatex.png

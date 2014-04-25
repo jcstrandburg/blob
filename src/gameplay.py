@@ -25,6 +25,7 @@ GRAVBALL_COOLDOWN = -0.25
 GRAVBALL_STREN = 240000
 
 FORCEFIELD_STRENGTH = 1000.
+STATUS_SCROLL_SPEED = 400
 
 #collision types
 COLL_PLAYER = 1
@@ -35,6 +36,11 @@ COLL_SEGMENT = 5
 COLL_FORCEFIELD = 6
 COLL_VICTORY = 7
 COLL_ENEMY = 8
+
+GAME_NORMAL = 0
+GAME_OVER = 1
+GAME_WON = 2
+GAME_PAUSE = 3
 
 def get_attrib(attribs, key, default=None, convert=None):
     '''helper function for fetching attributes from xml elements'''
@@ -131,20 +137,21 @@ class SpinnerRenderer(object):
 
         pos = (pos[0]-img.get_width()/2, pos[1]-img.get_height()/2)
         screen.blit( img, pos)  
-
     
 class GameplayActivity(Activity):
-        
+    
     def on_create(self, config):
         Activity.on_create(self, config)
 
         self.screen_size = pygame.display.get_surface().get_size()
-        print self.screen_size
-        
+        self.victory_anim = resources.get("goalani").get_new_handle()
+        self.enemy_anim = resources.get("enemyani").get_new_handle()
+       
         self.segment_renderers = [
             SegmentRenderer(resources.get("woodtex"),11),
             SegmentRenderer(resources.get("oozetex"),11),            
             SegmentRenderer(resources.get("icetex"),11),
+            SegmentRenderer(resources.get("voidtex"),11),
             PlatformRenderer((resources.get( "land4"), resources.get( "land4_vert"))),
         ]
         self.spinner_renderers = [
@@ -156,6 +163,7 @@ class GameplayActivity(Activity):
         self.filename = config["level"]
         self.level_elements = ET.parse( self.filename).getroot()
         self.reload_level()
+        self.show_status_text( False, 3.0, [(50, "Welcome to the jungle motherfucker")])        
         
     def update(self, timestep):
         Activity.update(self, timestep)
@@ -164,7 +172,18 @@ class GameplayActivity(Activity):
         pos = pygame.mouse.get_pos()
         self.mousepos = Vec2d( pos[0], 750-pos[1])
         pressed = pygame.mouse.get_pressed()
+        self.update_status_text( timestep)
+        self.victory_anim.cycle( timestep)
+        self.enemy_anim.cycle( timestep)
 
+        #deal with status text/images
+        if self.status_offset < 0.0:
+            self.status_offset += STATUS_SCROLL_SPEED*timestep
+        
+        #bail out now if the game is paused
+        if self.game_mode != GAME_NORMAL:
+            return None        
+        
         #enforce terminal velocity on player
         speed = self.player.velocity.get_length()
         self.max_speed = max(self.max_speed, speed)
@@ -178,6 +197,10 @@ class GameplayActivity(Activity):
             if self.charge_cap > MAXCHARGE:
                 self.charge_cap = MAXCHARGE
             vec = self.mousepos - self.player.position
+            if vec[0] > 0:
+                self.player.facing = "right"
+            else:
+                self.player.facing = "left"
             self.charge = min(self.charge_cap, vec.get_length()/LAUNCH_IND_LEN)
 
         #handle dragging spinners
@@ -189,6 +212,7 @@ class GameplayActivity(Activity):
             self.drag_body.reset_forces()
 
         for e in self.enemies:
+            print e.dir, e.velocity, e.limits
             if (e.dir > 0 and e.position[0] > e.limits[1]) or (e.dir < 0 and e.position[0] < e.limits[0]):
                 e.dir *= -1
             e.velocity = Vec2d( e.dir*100, e.velocity[1])
@@ -205,7 +229,6 @@ class GameplayActivity(Activity):
                 s.angular_velocity = 0.0
                 s.position = s.home_pos
                 s.velocity = Vec2d(0,0)
-
 
         self.player_floating = False
         for g in self.gravballs:
@@ -302,11 +325,13 @@ class GameplayActivity(Activity):
                 self.drag_body = None
                 
         elif event.type == KEYDOWN:
-            if event.key == K_SPACE:
-                self.player.position = (300,300)
-                self.player.velocity = Vec2d(0,0)
-            elif event.key == K_ESCAPE:
-                self.finish()
+            if event.key == K_ESCAPE:
+                if self.game_mode != GAME_NORMAL:
+                    self.finish()
+                else:
+                    self.pause_game()
+            elif event.key == K_SPACE:
+                self.resume_game()
             elif event.key == K_q:
                 self.level_elements = ET.parse( self.filename).getroot()
                 self.reload_level()
@@ -328,6 +353,13 @@ class GameplayActivity(Activity):
             elif event.key == K_b:
                 self.player_float -= 100
                 print self.player_float
+            elif event.key == K_u:
+                self.show_status_text( False, -1, (50, "Game Paused"))
+            elif event.key == K_i:
+                self.show_status_text( False, -1, (50, "You win, congrats"))
+            elif event.key == K_o:
+                self.show_status_text( False, -1, [(50, "You be dead"), (25, "Better luck next time dumbass")])
+            
 
         if not event_handled:
             Activity.handle_event(self, event)
@@ -356,9 +388,9 @@ class GameplayActivity(Activity):
                 pygame.draw.line( screen, (255,255,255), pymunk.pygame_util.to_pygame( ff.center, screen), pymunk.pygame_util.to_pygame( ff.center+ff.fieldforce, screen))
 
         else:
+            #draw forcefields
             img = resources.get("fieldbg")
             for f in self.forcefields:
-
                 imgw = img.get_width()
                 imgh = img.get_height()
                 offset = (int(f.imgoffset[0])%imgw, int(f.imgoffset[1])%imgh)
@@ -368,11 +400,13 @@ class GameplayActivity(Activity):
                     for y in xrange( -imgh, int(f.dimensions[1])+imgh, imgh):
                         sub.blit( img, (x+offset[0], y-offset[1])) 
 
+            #draw platform segments
             for s in self.segments:
                 self.segment_renderers[s.material].draw( screen, s.a, s.b)
 
-            baseimg = [resources.get("spinner1"),resources.get("spinner2"), resources.get("spinner3")]
+            #draw spinners
             conversion = 360/(2*math.pi)
+            gear = resources.get("spingear")
             for s in self.spinners:
                 pos = Vec2d( pymunk.pygame_util.to_pygame( s.position, screen))
                 angle = s.angle
@@ -380,20 +414,53 @@ class GameplayActivity(Activity):
                 material = s.material
                 scale = s.length/60.0
                 self.spinner_renderers[s.material].draw( screen, angle, scale, pos)
+                if s.mode == "drag":
+                    img = pygame.transform.rotate( gear, angle)
+                    offset = Vec2d(img.get_width()/2, img.get_height()/2)
+                    screen.blit( img, pos-offset)
             
+            #draw magnets
             baseimg = resources.get("magnet")
             for m in self.magnets:
                 pos = pymunk.pygame_util.to_pygame( m.position, screen)
                 img = pygame.transform.smoothscale( baseimg, (int(m.shape.radius*2), (int(m.shape.radius*2))))
                 offset = Vec2d(img.get_width()/2, img.get_height()/2)
                 screen.blit( img, pos-offset)
+            
+            #draw victory locations
+            baseimg = self.victory_anim.get_current_frame()
+            for v in self.victories:
+                pos = pymunk.pygame_util.to_pygame( v.topleft, screen)
+                img = pygame.transform.scale( baseimg, v.dimensions.int_tuple)
+                screen.blit( img, pos)
+                
+            #draw enemies
+            baseimg = self.enemy_anim.get_current_frame()
+            flipped = pygame.transform.flip( baseimg, True, False)
+            for e in self.enemies:
+                pos = pymunk.pygame_util.to_pygame( e.position, screen)
+                if e.velocity[0] < 0:
+                    screen.blit( baseimg, (pos[0]-baseimg.get_width()/2, pos[1]-baseimg.get_height()/2))
+                else:
+                    screen.blit( flipped, (pos[0]-baseimg.get_width()/2, pos[1]-baseimg.get_height()/2))
 
+            #draw the player
             if not self.player.dead:
-                baseimg = resources.get("player")
+                if self.charging:
+                    baseimg = resources.get("player_charging")
+                else:
+                    baseimg = resources.get("player")
+                    
+                if self.player.facing == "left":
+                    img = pygame.transform.flip( baseimg, True, False)
+                else:
+                    img = baseimg
+                    
                 pos = pymunk.pygame_util.to_pygame( self.player.position, screen)
-                offset = Vec2d( baseimg.get_width()/2, baseimg.get_height()/2)
-                screen.blit( baseimg, pos-offset)
+                offset = Vec2d( img.get_width()/2, img.get_height()/2)
+                screen.blit( img, pos-offset)
         
+        '''draw the launch indicator if the player is charging up'''
         mousepos = Vec2d( pygame.mouse.get_pos())#mouse position in screen coordinates
         playerpos = pymunk.pygame_util.to_pygame( self.player.position, screen)#player pos in screen coords
         if self.charging:
@@ -405,7 +472,61 @@ class GameplayActivity(Activity):
             for x in range(r,10,-3):
                 pos = playerpos+mousevect*x
                 pygame.draw.circle( screen, (255,255-x*2,0), pos.int_tuple, x/8)
+                
+        if self.status_img is not None:
+            screen.blit( self.status_img, (0,int(self.status_offset)))
 
+    def clear_status_text(self):
+        self.status_img = None
+        self.status_offset = 0.0
+        self.status_timer = 0.0
+            
+    def show_status_text(self, scroll, timer, lines):
+        
+        self.status_img = pygame.Surface( self.screen_size, pygame.SRCALPHA)
+        self.status_timer = timer
+        
+        if not isinstance( lines[0], (list,tuple)):
+            lines = [lines]
+        
+        renders = []
+        height = 0
+        width = 0
+        for l in lines:
+            font = pygame.font.Font(None, l[0])
+            img = font.render( l[1], 1, (255,255,0))
+            renders.append( img)
+            if img.get_width() > width:
+                width = img.get_width()
+            height += img.get_height()
+        
+        basey = self.screen_size[1]/2 - height/2
+        rect = pygame.Surface((width+20, height+20))
+        rect.fill((0,0,40))
+        rect.set_alpha( 150)
+        self.status_img.blit( rect, (self.screen_size[0]/2 - rect.get_width()/2, self.screen_size[1]/2 - rect.get_height()/2))
+        #pygame.draw.rect( self.status_img, (0,0,40), (self.screen_size[0]/2 - width/2, self.screen_size[1]/2 - height/2, width, height))        
+        for r in renders:
+            pos = (self.screen_size[0]/2 - r.get_width()/2, basey)
+            basey += r.get_height()
+            self.status_img.blit( r, pos)
+            
+        if scroll:
+            self.status_offset = -(self.screen_size[1]+height)/2
+
+    def  update_status_text(self, timestep):
+    
+        if self.status_timer < 0.0:
+            return None
+        
+        elif self.status_timer < timestep:
+            self.status_timer = 0.0
+            self.status_offset = 0.0
+            self.status_img = None
+
+        else:
+            self.status_timer -= timestep
+        
     def make_spinner(self, mode, pos, angle, speed, length, material=0):
         evalues = [0.12, 1.2, 0.12]
         fvalues = [2.0, 0.5, 0.1]
@@ -449,6 +570,8 @@ class GameplayActivity(Activity):
         vic = pymunk.Poly( self.space.static_body, points)
         vic.color = (255,255,0)
         vic.collision_type = COLL_VICTORY
+        vic.topleft = Vec2d(x,y+h)
+        vic.dimensions = Vec2d(w,h)
         self.space.add( vic)
         self.victories.append(vic)
         return vic
@@ -464,7 +587,7 @@ class GameplayActivity(Activity):
 
         field.topleft = Vec2d(x,y+h)
         field.imgoffset = Vec2d(0,0)
-        field.dimensions = (w,h)
+        field.dimensions = Vec2d(w,h)
 
         self.space.add( field)
         self.forcefields.append( field)
@@ -497,6 +620,7 @@ class GameplayActivity(Activity):
         player.position = position
         player.joints = []
         player.dead = False
+        player.facing = "right"
 
         shape = pymunk.Circle(player, radius)
         shape.color = (50,200,50)
@@ -540,13 +664,14 @@ class GameplayActivity(Activity):
         body.dir = dir
         body.position = pos
         body.limits = limits
+        body.dir = 1
         w = 20
         h = 20
         points = [(-w,-h),(w,-h),(w,h),(-w,h)]
         square = pymunk.Poly( body, points)
         square.color = (0,0,255)
         square.elasticity = 0.5
-        square.friction = 0.5
+        square.friction = 0.0
         square.collision_type = COLL_ENEMY
         body.shape = square
         
@@ -562,13 +687,18 @@ class GameplayActivity(Activity):
         self.charge_cap =  0
         self.grabbed = None
         self.mousepos = Vec2d(0,0)
-        self.complex_drawing = False
+        self.complex_drawing = True
         self.max_speed = 0
         self.player_launchable = True
         self.drag_joint = None
         self.player_floating = False
         self.player_float = 6000
         self.time = 0.0
+        self.status_img = None
+        self.status_offset = 0
+        self.game_mode = GAME_NORMAL
+        self.clear_status_text()
+
 
         #reset the space
         self.space = pymunk.Space()
@@ -675,7 +805,7 @@ class GameplayActivity(Activity):
         return True
 
     def player_victory_collide(self, space, arbiter):
-        print "you win dude"
+        self.win_level()
         return True
 
     def player_gravball_collide(self, space, arbiter):
@@ -717,5 +847,19 @@ class GameplayActivity(Activity):
     def kill_player(self):
         self.space.remove( self.player, self.player.shape)
         self.player.dead = True
+        self.game_mode = GAME_OVER
+        self.show_status_text( True, -1.0, (50, "You suck you fuckin' loser"))
+        
+    def win_level(self):
+        self.game_mode = GAME_WON
+        self.show_status_text( True, -1.0, [(50, "You think you're special?"), (40, "You're not that special")])
+     
+    def pause_game(self):
+        self.game_mode = GAME_PAUSE
+        self.show_status_text( False, -1.0, [(50, "Game Paused"), (40, "Press space to resume")])
+        
+    def resume_game(self):
+        self.game_mode = GAME_NORMAL
+        self.clear_status_text()
 
 

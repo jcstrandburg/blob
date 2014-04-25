@@ -104,7 +104,7 @@ class TestAct(Activity):
         Activity.__init__(self, controller)
 
     def on_create(self, config):
-        self.junk = resources.get("testani").get_new_handle()
+        self.junk = resources.get("enemyani").get_new_handle()
 
     def update( self, timestep):
         Activity.update( self, timestep)
@@ -112,21 +112,23 @@ class TestAct(Activity):
 
     def draw(self, screen):
         Activity.draw( self, screen)
+        
+        x = random.randint( 80, 90)
+        screen.fill( (x,x,x))
+        
         img = self.junk.get_current_frame()
-        img2 = resources.get("animimage")
         pos = pygame.mouse.get_pos()
-        screen.blit(img, pos)
-        screen.blit(img2, (pos[0], pos[1]+50))
+        img2 = pygame.transform.scale( img, (40, 40))
+        screen.blit(img2, pos)
 
 
 def main():
     gc = GameController()
     gc.startup()
     
-    #gc.start_activity(GameplayActivity, {"level": gc.level_path(3)})
-    #gc.start_activity(TestAct, {"level": gc.level_path(2)})
     #gc.start_activity(LevelSelectMenu, None)
     gc.start_activity(MainMenuActivity, None)
+    #gc.start_activity( TestAct, None)
     running = True
     while running:
 

@@ -24,5 +24,7 @@
     <segment x1='450' y1='0' x2='450' y2='300' material='0'/>
 
     <gravball mode='pull' x='300' y='180' size='35' wellsize='110'/>
+	
+	<enemy x='550' y='40' leftlimit='500' rightlimit='700' dir='0'/>
 
 </level>
