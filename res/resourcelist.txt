@@ -1,13 +1,18 @@
-#player images
-image, bbob, bbob.png
-image, bbob2, bbob.png
-image, otherimage, anim2.png
-image, menubg, menubg.png
-
 #some sounds
 sound, snd1, button-10.wav
 sound, snd2, button-2.wav
 sound, snd3, skwish.wav
+
+sound, squish1, squish1.wav
+sound, squish2, squish2.wav
+sound, squish3, squish3.wav
+sound, squish4, squish4.wav
+sound, sheepdie, sheep.wav
+sound, playerdie, wilhelm.wav
+sound, bounce1, bounce1.wav
+sound, bounce2, bounce2.wav
+sound, bounce3, bounce3.wav
+sound, bounce4, bounce4.wav
 
 #animation shit
 anim, testani, anim.ani
@@ -36,13 +41,18 @@ image, spingear, gear.png
 image, gravball, gravball.png
 image, antigravball, antigravball.png
 image, magnet, magball.png
-image, player, bob.png
-image, player_charging, squintybob.png
 image, fieldbg, ffalt.png
 image, background, bg2.png
+
+#player
+image, player, bob.png
+image, player_charging, squintybob.png
+image, player_impact, ouchbob.png
+
 
 #texture backgrounds
 image, woodtex, woodmat.png
 image, oozetex, oozemat.png
 image, icetex, icemat.png
 image, voidtex, plasmatex.png
+image, voidtex, lavatex.png

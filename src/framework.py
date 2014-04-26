@@ -4,13 +4,16 @@ import random, time, os, fnmatch, sys
 from animation import AnimatedImage
 
 class ResourceManager(object):
-    _resources = {} #dictionary of actual resource objects, indexed by uri's
-    _preloads = {} #dictionary of resource uri's and 
-    _dirpath = None
 
     def __init__(self):
+        self._resources = {} #dictionary of actual resource objects, indexed by uri's
+        self._preloads = {} #dictionary of resource uri's and 
+        self._dirpath = None        
         pass
 
+    def force_reload(self):
+        self._resources = {}
+        
     def load(self, dirpath, listpath):
         self._dir = dirpath
 
@@ -33,7 +36,6 @@ class ResourceManager(object):
 
             #it's not loaded yet, try to load it
             except KeyError:
-                print "loading resource",tag
                 if restype == "image":
                     self._resources[uri] = pygame.image.load(uri).convert_alpha()
                 elif restype == "sound":
@@ -52,7 +54,9 @@ class ResourceManager(object):
 
 class SettingsManager(object):
 
-    _settings = {}
+    def __init__(self):
+        self._settings = {}
+    
     def load(self, filepath):
         f = file(filepath, 'r')
         for line in f:
@@ -171,7 +175,6 @@ class GameController(object):
                 newact = ActClass(self)
                 newact.on_create(config)
                 self._activities.append(newact)
-                print "adding new activity"
 
             #clear the list of pending activities
             del self._pending[:]
@@ -183,7 +186,6 @@ class GameController(object):
         #grab the top activity, then kill of this and any other finished activities
         top = self._top_activity()
         while top is not None and top.finished:
-            print "removing activity"
             top.pause()
             top.on_destroy()
             self._activities.pop()
@@ -194,7 +196,7 @@ class GameController(object):
             ticks = self.clock.tick()
             timestep = float(ticks)/1000
             self._time_stored += timestep
-            #pygame.display.set_caption( str(self.clock.get_fps())) #this seems to cause a memory leak or something, causing the game to hange on pygame.quit
+            pygame.display.set_caption( str(self.clock.get_fps())) #this seems to cause a memory leak or something, causing the game to hange on pygame.quit
 
         #force the top activity to resume and do an update
         if top is not None:
