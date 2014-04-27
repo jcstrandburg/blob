@@ -53,37 +53,42 @@ class TutorialActivity(Activity):
     def __init__(self, controller):
         Activity.__init__(self, controller)
         self.script = [
-            ("tutorial1", [
-                    (["This is Bob","Bob is a blob"],(200,200)), 
-                    (["Bob is on a magical quest", "for sparkly things"], (200,300))
+            ("tut1a", [
+                    (["This is Bob","Bob is a blob"],(225,250)), 
+                    (["Bob is on a magical quest", "for sparkly things"], (225,425))
                 ]),
-            ("tutorial2", [
-                    (["These are sparkly things","Touch these to beat a level"],(200,200))
+            ("tut1b", [
+                    (["Hold the right mouse button","to charge Bob up"],(300,250)), 
+                    (["Release RMB to launch Bob","towards the mouse"],(350,250)),
+                    (["Once Bob is launched he cannot","launch again until he has collided","or interacted with some object"],(400,450))
                 ]),
-            ("tutorial3", [
-                    (["Hold the right mouse button","to charge Bob up"],(200,200)), 
-                    (["Release RMB to launch Bob","towards the mouse"],(300,300)),
-                    (["Once Bob is launched he cannot","launch again until he has collided","or interacted with some object"],(400,400))
+            ("tut1c", [
+                    (["These are sparkly things","Touch these to beat a level"],(550,250))
                 ]),
-            ("tutorial4", [
-                    (["These are platformas and spinners","They are made of differenct materiasl that have differnt properites"],(200,200))
+            ("tut2a", [
+                    (["These are platforms and spinners"],(400,350)),
+                    (["They are made of different materials", "that have different properties"],(400,375)),
                 ]),
-            ("tutorial5", [
-                    (["You can manually rotate spinners","that have gears in the middle"],(200,200)),
-                    (["Left click on them and move","the mouse to rotate them"],(200,200)),
+            ("tut2b", [
+                    (["You can manually rotate spinners","that have gears in the middle"],(200,400)),
+                    (["Left click on them and move","the mouse to rotate them"],(300,575)),
                 ]),
-            ("tutorial6", [
-                    (["These are gravity wells","They either push or pull you."],(200,200)),
-                    (["While you are in a gravity well","you are not subject to normal gravity."],(200,200)),
-                    (["use them to perform","sweet orbital maneuvers."],(200,200)),
+            ("tut3a", [
+                    (["These are gravity wells","They either push or pull you."],(300,100)),
+                    (["While you are in a gravity well","you are not subject to normal gravity."],(300,400)),
                 ]),
-            ("tutorial7", [
-                    (["These are forcefields and magnets","They do what you might expect"],(200,200)),
+            ("tut3b", [
+                    (["Use them to perform","sweet orbital maneuvers."],(450,200)),
+                ]),                
+            ("tut4", [
+                    (["These are forcefields and magnets","They do what you might expect"],(400,350)),
                 ]),
-            ("tutorial8", [
-                    (["These are sheep", "Sheep are assholes", "Sheep murdered your whole family"],(200,200)),
-                    (["If you hit sheep at high speeds", "they die. If you hit them", "at low speed you die"],(200,200)),
-                    (["Kill the evil bastards before", "they kill you"],(200,200)),
+            ("tut5a", [
+                    (["These are sheep", "Sheep are assholes", "Sheep murdered your whole family"],(200,400)),
+                    (["If you hit sheep at high speeds", "they die. If you hit them", "at low speed you die"],(350,400)),
+                ]),
+            ("tut5b", [
+                    (["Kill the evil bastards before", "they kill you"],(500,600)),
                 ]),
         ]
         self.panel = 0

@@ -132,7 +132,10 @@ class GameplayActivity(Activity):
         self.particle_limit = settings.get("particle_limit")
         self.particle_fps_limit = settings.get("particle_fps_limit")
         self.optimize_drawing = True
-       
+        self.bg_index = 3
+        self.bgs = ["background1", "background2", "background3", "background4", "background5"]
+        
+        
         self.segment_renderers = [
             SegmentRenderer(resources.get("woodtex"),11),
             SegmentRenderer(resources.get("oozetex"),11),            
@@ -371,14 +374,19 @@ class GameplayActivity(Activity):
                 self.make_particles( self.mousepos, 20, PLAYER_PARTICLE_COLOR)
             elif event.key == K_F12:
                 resources.force_reload()
+                print "schwat"
             elif event.key == K_d:
                 self.optimize_drawing = not self.optimize_drawing
+            elif event.key == K_F4:
+                pygame.image.save(pygame.display.get_surface(), "screen.png")
+            elif event.key == K_F2:
+                self.bg_index = (self.bg_index+1)%len(self.bgs)
 
         if not event_handled:
             Activity.handle_event(self, event)
 
     def draw_statics(self, screen):
-        screen.blit(resources.get("background"), (0,0))    
+        screen.blit(resources.get(self.bgs[self.bg_index]), (0,0))    
     
         #draw platform segments
         for s in self.segments:
@@ -434,7 +442,7 @@ class GameplayActivity(Activity):
                     else:
                         for r in xrange(wavesize-begin, g.wellsize, wavesize):
                             if r > 0:
-                                pygame.draw.circle( screen, (100,0,120), pos, r, 1)                
+                                pygame.draw.circle( screen, (200,0,240), pos, r, 1)                
         
             #draw forcefields
             img = resources.get("fieldbg")

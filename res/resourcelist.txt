@@ -1,7 +1,6 @@
 #some sounds
 sound, snd1, button-10.wav
 sound, snd2, button-2.wav
-sound, snd3, skwish.wav
 
 sound, squish1, squish1.wav
 sound, squish2, squish2.wav
@@ -15,31 +14,22 @@ sound, bounce3, bounce3.wav
 sound, bounce4, bounce4.wav
 
 #animation shit
-anim, testani, anim.ani
-anim, otherani, anim2.ani
-image, animimage, anim.png
 anim, goalani, goal.ani
 anim, enemyani, sheep.ani
 
 #tutorial images
-image, tutorial1, tut1.png
-image, tutorial2, tut2.png
-image, tutorial3, tut3.png
-image, tutorial4, tut4.png
-image, tutorial5, tut5.png
-image, tutorial6, tut6.png
-image, tutorial7, tut7.png
-image, tutorial8, tut8.png
+image, tut1a, tut1a.png
+image, tut1b, tut1b.png
+image, tut1c, tut1c.png
+image, tut2a, tut2a.png
+image, tut2b, tut2b.png
+image, tut3a, tut3a.png
+image, tut3b, tut3b.png
+image, tut3c, tut3c.png
+image, tut4, tut4.png
+image, tut5a, tut5a.png
+image, tut5b, tut5b.png
 
-#terrain junk
-image, land1, brick.png
-image, land1_vert, brick.png
-image, land2, bounce.png
-image, land2_vert, bouncev.png
-image, land3, ice.png
-image, land3_vert, icev.png
-image, land4, fire.png
-image, land4_vert, firev.png
 
 #spinners
 image, spinner3, iceplat.png
@@ -51,16 +41,21 @@ image, spingear, gear.png
 image, gravball, gravball.png
 image, antigravball, antigravball.png
 image, magnet, magball.png
-image, fieldbg, ffalt.png
-image, background, bg2.png
+image, fieldbg, ff3.png
 
-#player
+#backgrounds
+image, background1, bg1.png
+image, background2, bg2.png
+image, background3, bg3.png
+image, background4, bg4.png
+image, background5, bg5.png
+
+#player sprites
 image, player, bob.png
 image, player_charging, squintybob.png
 image, player_impact, ouchbob.png
 
-
-#texture backgrounds
+#platform textures
 image, woodtex, woodmat.png
 image, oozetex, oozemat.png
 image, icetex, icemat.png
