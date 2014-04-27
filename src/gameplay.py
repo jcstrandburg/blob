@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import pygame
 from pygame.locals import *
 
-from framework import GameController, Activity, EventListener, resources
+from framework import GameController, Activity, EventListener, resources, settings
 
 #import pymunk stuff
 current_path = os.getcwd()
@@ -129,6 +129,9 @@ class GameplayActivity(Activity):
         self.screen_size = pygame.display.get_surface().get_size()
         self.victory_anim = resources.get("goalani").get_new_handle()
         self.enemy_anim = resources.get("enemyani").get_new_handle()
+        self.particle_limit = settings.get("particle_limit")
+        self.particle_fps_limit = settings.get("particle_fps_limit")
+        self.optimize_drawing = True
        
         self.segment_renderers = [
             SegmentRenderer(resources.get("woodtex"),11),
@@ -145,7 +148,6 @@ class GameplayActivity(Activity):
         self.filename = config["level"]
         self.level_elements = ET.parse( self.filename).getroot()
         self.reload_level()
-        self.show_status_text( False, 3.0, [(50, "Insert level load message")])
         
     def update(self, timestep):
         Activity.update(self, timestep)
@@ -214,6 +216,7 @@ class GameplayActivity(Activity):
                         p.apply_impulse( ff.fieldforce*FORCEFIELD_STRENGTH*timestep*p.mass)
 
         #do particle decay
+        #print len(self.particles)
         for p in self.particles:
             p.life -= timestep
             if p.life <= 0:
@@ -368,35 +371,71 @@ class GameplayActivity(Activity):
                 self.make_particles( self.mousepos, 20, PLAYER_PARTICLE_COLOR)
             elif event.key == K_F12:
                 resources.force_reload()
+            elif event.key == K_d:
+                self.optimize_drawing = not self.optimize_drawing
 
         if not event_handled:
             Activity.handle_event(self, event)
+
+    def draw_statics(self, screen):
+        screen.blit(resources.get("background"), (0,0))    
+    
+        #draw platform segments
+        for s in self.segments:
+            self.segment_renderers[s.material].draw( screen, s)
             
+        #draw magnets
+        baseimg = resources.get("magnet")
+        for m in self.magnets:
+            pos = pymunk.pygame_util.to_pygame( m.position, screen)
+            img = pygame.transform.smoothscale( baseimg, (int(m.shape.radius*2), (int(m.shape.radius*2))))
+            offset = Vec2d(img.get_width()/2, img.get_height()/2)
+            screen.blit( img, pos-offset)            
+    
     def draw(self, screen):
         Activity.draw(self, screen)
-        screen.blit(resources.get("background"), (0,0))
-        
-        #draw gravity balls
-        wavesize = 25
-        begin = int(0.5*self.time*wavesize)%wavesize
-        for g in self.gravballs:
-            if not g.shutdown:
-                pos = pymunk.pygame_util.to_pygame( g.position, screen)
-                if g.strength < 0:
-                    for r in xrange(begin, g.wellsize, wavesize):
-                        if r > 0:
-                            pygame.draw.circle( screen, (200,60,0), pos, r, 1)
-                else:
-                    for r in xrange(wavesize-begin, g.wellsize, wavesize):
-                        if r > 0:
-                            pygame.draw.circle( screen, (100,0,120), pos, r, 1)
-
+       
         if not self.complex_drawing:
             pymunk.pygame_util.draw( screen, self.space)
             for ff in self.forcefields:
                 pygame.draw.line( screen, (255,255,255), pymunk.pygame_util.to_pygame( ff.center, screen), pymunk.pygame_util.to_pygame( ff.center+ff.fieldforce, screen))
+                
+            #draw gravity balls
+            wavesize = 25
+            begin = int(0.5*self.time*wavesize)%wavesize
+            for g in self.gravballs:
+                if not g.shutdown:
+                    pos = pymunk.pygame_util.to_pygame( g.position, screen)
+                    if g.strength < 0:
+                        for r in xrange(begin, g.wellsize, wavesize):
+                            if r > 0:
+                                pygame.draw.circle( screen, (200,60,0), pos, r, 1)
+                    else:
+                        for r in xrange(wavesize-begin, g.wellsize, wavesize):
+                            if r > 0:
+                                pygame.draw.circle( screen, (100,0,120), pos, r, 1)                
 
         else:
+            if self.optimize_drawing:
+                screen.blit( self.static_img, (0,0))
+            else:
+                self.draw_statics(screen)            
+        
+            #draw gravity balls
+            wavesize = 25
+            begin = int(0.5*self.time*wavesize)%wavesize
+            for g in self.gravballs:
+                if not g.shutdown:
+                    pos = pymunk.pygame_util.to_pygame( g.position, screen)
+                    if g.strength < 0:
+                        for r in xrange(begin, g.wellsize, wavesize):
+                            if r > 0:
+                                pygame.draw.circle( screen, (200,60,0), pos, r, 1)
+                    else:
+                        for r in xrange(wavesize-begin, g.wellsize, wavesize):
+                            if r > 0:
+                                pygame.draw.circle( screen, (100,0,120), pos, r, 1)                
+        
             #draw forcefields
             img = resources.get("fieldbg")
             for f in self.forcefields:
@@ -408,10 +447,6 @@ class GameplayActivity(Activity):
                 for x in xrange( -imgw, int(f.dimensions[0])+imgw, imgw):
                     for y in xrange( -imgh, int(f.dimensions[1])+imgh, imgh):
                         sub.blit( img, (x+offset[0], y-offset[1])) 
-
-            #draw platform segments
-            for s in self.segments:
-                self.segment_renderers[s.material].draw( screen, s)
 
             #draw spinners
             conversion = 360/(2*math.pi)
@@ -432,15 +467,6 @@ class GameplayActivity(Activity):
             for p in self.particles:
                 pos = pymunk.pygame_util.to_pygame( p.position, screen)
                 pygame.draw.circle(screen, p.color, pos, 2)
-    
-
-            #draw magnets
-            baseimg = resources.get("magnet")
-            for m in self.magnets:
-                pos = pymunk.pygame_util.to_pygame( m.position, screen)
-                img = pygame.transform.smoothscale( baseimg, (int(m.shape.radius*2), (int(m.shape.radius*2))))
-                offset = Vec2d(img.get_width()/2, img.get_height()/2)
-                screen.blit( img, pos-offset)
             
             #draw victory locations
             baseimg = self.victory_anim.get_current_frame()
@@ -596,13 +622,21 @@ class GameplayActivity(Activity):
         
         rot_body = pymunk.Body()
         rot_body.position = pos
-        rot_joint = pymunk.PinJoint( spinner, rot_body, (0,0), (0,0))
+        #rot_joint = pymunk.PinJoint( spinner, rot_body, (0,0), (0,0))
+        rot_joint = pymunk.PivotJoint( spinner, rot_body, (0,0), (0,0))
         
         self.space.add( spinner, shape, rot_joint)
         self.spinners.append( spinner)
         return spinner
     
     def make_particles(self, pos, number, color):
+        #prevent massive fps drops
+        if self.controller.fps < self.particle_fps_limit:
+            return None
+    
+        if len( self.particles) +number > self.particle_limit:    
+            number = self.particle_limit-len(self.particles)
+    
         for i in xrange(number):
             angle = random.uniform( 0.0, 2*math.pi)
             vel = random.uniform(100.0, 300.0)
@@ -748,7 +782,6 @@ class GameplayActivity(Activity):
         self.game_mode = GAME_NORMAL
         self.clear_status_text()
 
-
         #reset the space
         self.space = pymunk.Space()
         self.space.gravity = 0, GRAVITY
@@ -758,6 +791,7 @@ class GameplayActivity(Activity):
         self.space.add_collision_handler( COLL_PLAYER, COLL_SPINNER, begin=self.player_collide_with_sound, pre_solve=self.player_spinner_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_SEGMENT, pre_solve=self.player_segment_collide, begin=self.player_collide_with_sound)
         self.space.add_collision_handler( COLL_ENEMY, COLL_ENEMY, begin=self.enemy_enemy_collide)
+        #self.space.add_collision_handler( COLL_PARTICLE, COLL_PARTICLE, begin=self.particle_particle_collide)
         
         #reset the game objects
         self.make_player( (100, 100))    
@@ -769,6 +803,9 @@ class GameplayActivity(Activity):
         self.forcefields = []
         self.victories = []
         self.particles = []
+        
+        title = None
+        subtitle = None
 
         #create all of the elements
         for e in self.level_elements:
@@ -828,9 +865,32 @@ class GameplayActivity(Activity):
                 fy = get_attrib(e.attrib, "forcey", None, float)
                 self.make_forcefield( x, y, w, h, Vec2d(fx, fy))
         
+            elif e.tag == "title":
+                print "something something your mom"
+                print e.text
+                title = e.text
+                
+            elif e.tag == "subtitle":
+                subtitle = e.text
+        
             else:
                 print "unrecognized tag", e.tag
+                
+        self.static_img = pygame.Surface( self.screen_size, pygame.SRCALPHA)
+        self.draw_statics( self.static_img)
+        
+        if title is not None:
+            texts = [(50, title)]
+            if subtitle is not None:
+                texts.append( (30, subtitle))
+            self.show_status_text( False, 2.0, texts)
 
+    def enemy_enemy_collide(self, space, arbiter):
+        return False                
+
+    def particle_particle_collide(self, space, arbiter):
+        return False
+        
     def stick_player_to_magnet(self, bbody, sbody, pos, space):
         bbody.velocity = Vec2d(0,0)
         bbody.angular_velocity = 0
@@ -847,9 +907,6 @@ class GameplayActivity(Activity):
         space.add_post_step_callback(self.stick_player_to_magnet, player.body, spinner.body, pos, self.space)
         self.player_launchable = True
         return True
-
-    def enemy_enemy_collide(self, space, arbiter):
-        return False
         
     def player_spinner_collide(self, space, arbiter):
         self.player_launchable = True

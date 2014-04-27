@@ -142,6 +142,9 @@ class MenuActivity(Activity):
                 if self._selectedwidget is not None and self._selectedwidget.is_clickable:
                     if self._selectedwidget.onclick is not None:
                         self._selectedwidget.onclick()
+                        
+            elif event.key == K_ESCAPE:
+                self.finish()
         
         if not event_handled:
             Activity.handle_event( self, event)

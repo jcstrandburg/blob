@@ -21,6 +21,16 @@ image, animimage, anim.png
 anim, goalani, goal.ani
 anim, enemyani, sheep.ani
 
+#tutorial images
+image, tutorial1, tut1.png
+image, tutorial2, tut2.png
+image, tutorial3, tut3.png
+image, tutorial4, tut4.png
+image, tutorial5, tut5.png
+image, tutorial6, tut6.png
+image, tutorial7, tut7.png
+image, tutorial8, tut8.png
+
 #terrain junk
 image, land1, brick.png
 image, land1_vert, brick.png

@@ -92,6 +92,8 @@ class SettingsManager(object):
 class GameController(object):
     
     def __init__(self):
+        self.fps = 0
+        self.fps_bias = .7
         pass
 
     def startup(self):
@@ -196,8 +198,10 @@ class GameController(object):
             ticks = self.clock.tick()
             timestep = float(ticks)/1000
             self._time_stored += timestep
-            pygame.display.set_caption( str(self.clock.get_fps())) #this seems to cause a memory leak or something, causing the game to hange on pygame.quit
 
+        self.fps = self.fps * self.fps_bias + self.clock.get_fps()*(1-self.fps_bias)
+        pygame.display.set_caption( str(int(self.fps))) #this seems to cause a memory leak or something, causing the game to hange on pygame.quit
+            
         #force the top activity to resume and do an update
         if top is not None:
             top.resume()
