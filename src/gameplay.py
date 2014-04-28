@@ -29,6 +29,7 @@ GRAVBALL_STREN = 24000
 
 FORCEFIELD_STRENGTH = 100.
 STATUS_SCROLL_SPEED = 400
+SPINNER_DAMPENING 0.05
 
 #collision types
 COLL_PLAYER = 1
@@ -85,10 +86,8 @@ class SegmentRenderer(object):
         if self.extended_segment_render:
             vect = v2-v1
             vect /= vect.get_length()
-            v2 += vect * seg.radius
-            v1 -= vect * seg.radius
-        
-        
+            v2 += vect * seg.radius * .7
+            v1 -= vect * seg.radius * .7
         
         xdif = v2[0]-v1[0]
         ydif = v2[1]-v1[1]
@@ -184,7 +183,7 @@ class GameplayActivity(Activity):
         #check for player off map
         if self.game_mode != GAME_OVER:
             pos = self.player.position
-            if pos[0] < 0 or pos[1] < 0 or pos[0] > self.screen_size[0] or pos[1] > self.screen_size[1]:
+            if pos[0] < -200 or pos[1] < -200 or pos[0] > self.screen_size[0]+200 or pos[1] > self.screen_size[1]+200:
                 self.kill_player()
         
         #enforce terminal velocity on player
@@ -248,6 +247,8 @@ class GameplayActivity(Activity):
                 s.angular_velocity = 0.0
                 s.position = s.home_pos
                 s.velocity = Vec2d(0,0)
+            elif s.mode == "free":
+                
 
         #deal with gravity balls
         self.player_floating = False
@@ -1022,7 +1023,6 @@ class GameplayActivity(Activity):
             [(sz1, "Impressive"), (sz2, "But not as impressive as you think")],
         )
         addendum = [(sz3, "Press SPACE to continue")]
-
     
         self.game_mode = GAME_WON
         snd = resources.get("victory")
