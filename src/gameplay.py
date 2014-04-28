@@ -29,7 +29,7 @@ GRAVBALL_STREN = 24000
 
 FORCEFIELD_STRENGTH = 100.
 STATUS_SCROLL_SPEED = 400
-SPINNER_DAMPENING 0.05
+SPINNER_DAMPENING  = 0.15
 
 #collision types
 COLL_PLAYER = 1
@@ -241,13 +241,15 @@ class GameplayActivity(Activity):
                 self.space.remove( p, p.shape)
                 self.particles.remove( p)
 
-        #force any draggable spinners to stop moving, reduces jitter and stuff
+        
         for s in self.spinners:
+            #force any draggable spinners to stop moving, reduces jitter and stuff
             if s.mode == "drag" and s != self.grabbed:
                 s.angular_velocity = 0.0
                 s.position = s.home_pos
                 s.velocity = Vec2d(0,0)
             elif s.mode == "free":
+                s.angular_velocity -= timestep*SPINNER_DAMPENING*s.angular_velocity
                 
 
         #deal with gravity balls
@@ -617,7 +619,8 @@ class GameplayActivity(Activity):
         colors =  [ (255,50,50), (50,255,50), (50,50,255)]
 
         if mode == "free":
-            spinner = pymunk.Body(1000.,1000.)
+            mass = 1e2
+            spinner = pymunk.Body(mass, pymunk.moment_for_segment( mass, (0,length), (0,-length)))
         elif mode == "drag":
             mass = 1e4
             spinner = pymunk.Body(mass, pymunk.moment_for_segment( mass, (0,length), (0,-length)))
@@ -668,7 +671,7 @@ class GameplayActivity(Activity):
             angle = random.uniform( 0.0, 2*math.pi)
             vel = random.uniform(100.0, 300.0)
         
-            body = pymunk.Body( 0.01, pymunk.inf)
+            body = pymunk.Body( 0.001, pymunk.inf)
             body.position = pos
             body.velocity = Vec2d( vel*math.sin(angle), vel*math.cos(angle))
             body.color = self.randcolor(color)
@@ -780,7 +783,7 @@ class GameplayActivity(Activity):
         square.elasticity = 0.5
         square.friction = 0.0
         square.collision_type = COLL_ENEMY
-        square.layers = LAYER_STATICS
+        square.layers = LAYER_STATICS | LAYER_DYNAMICS
 
         body.shape = square
         
