@@ -23,8 +23,10 @@
     <segment x1='0' y1='0' x2='0' y2='750' material='0'/>
     <segment x1='0' y1='0' x2='750' y2='0' material='0'/>
 	<segment x1='0' y1='750' x2='750' y2='750' material='0'/>
-	
-	<segment x1='100' y1='10' x2='650' y2='10' material='1' size='11'/>
+
+	<segment x1='100' y1='0' x2='200' y2='10' material='1' size='11'/>	
+	<segment x1='200' y1='10' x2='550' y2='10' material='1' size='11'/>
+	<segment x1='550' y1='10' x2='650' y2='0' material='1' size='11'/>
 	
 	<enemy x='150' y='40' leftlimit='100' rightlimit='650' dir='-1'/>
 	<enemy x='450' y='40' leftlimit='100' rightlimit='650' dir='1'/>
