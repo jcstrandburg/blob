@@ -245,14 +245,8 @@ class Activity(object):
     def on_destroy(self):
         pass
 
-    def add_event_listener(self, listener, types):
-        self.listeners.append((types, listener))
-
     def handle_event(self, event):
-        for l in self.listeners:
-            if event.type in l[0]:
-                if l[1].handle_event(event):
-                    break
+        pass
 
     def resume(self):
         if self.paused:
@@ -276,11 +270,6 @@ class Activity(object):
     def update(self, timestep):
         pass
 
-
-class EventListener(object):
-
-    def handle_event(self, event):
-        return 0
 
 settings = SettingsManager()
 resources = ResourceManager()

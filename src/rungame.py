@@ -3,7 +3,7 @@ from pygame.locals import *
 
 import math, random, os, sys
 
-from framework import GameController, Activity, EventListener, resources
+from framework import GameController, Activity, resources
 from gameplay import GameplayActivity
 import menu
 
@@ -228,36 +228,11 @@ class LevelSelectMenu(menu.MenuActivity):
         #self.bg.draw( screen)
         menu.MenuActivity.draw(self, screen)
 
-class TestAct(Activity):
-    def __init__(self, controller):
-        Activity.__init__(self, controller)
-
-    def on_create(self, config):
-        self.junk = resources.get("enemyani").get_new_handle()
-
-    def update( self, timestep):
-        Activity.update( self, timestep)
-        self.junk.cycle( timestep)
-
-    def draw(self, screen):
-        Activity.draw( self, screen)
-        
-        x = random.randint( 80, 90)
-        screen.fill( (x,x,x))
-        
-        img = self.junk.get_current_frame()
-        pos = pygame.mouse.get_pos()
-        img2 = pygame.transform.scale( img, (40, 40))
-        screen.blit(img2, pos)
-
-
 def main():
     gc = GameController()
     gc.startup()
     
-    #gc.start_activity(LevelSelectMenu, None)
     gc.start_activity(MainMenuActivity, None)
-    #gc.start_activity( TestAct, None)
     running = True
     while running:
 

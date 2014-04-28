@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import pygame
 from pygame.locals import *
 
-from framework import GameController, Activity, EventListener, resources, settings
+from framework import GameController, Activity, resources, settings
 
 #import pymunk stuff
 current_path = os.getcwd()
