@@ -56,6 +56,7 @@ ENEMY_PARTICLE_COLOR = (200,50,50)
 
 PARTICLE_PHYSICS = True
 
+extended_segment_render = False
 
 
 def get_attrib(attribs, key, default=None, convert=None):
@@ -70,17 +71,28 @@ def get_attrib(attribs, key, default=None, convert=None):
     return x
 
 class SegmentRenderer(object):
-    slicesize = 4
+    extended_segment_render = True
 
     def __init__(self, image, size):
         self.image = image
+        self.inflation = 4
         
     def draw( self, screen, seg):
-        v1 = pymunk.pygame_util.to_pygame( seg.a, screen)
-        v2 = pymunk.pygame_util.to_pygame( seg.b, screen)
+        v1 = Vec2d( pymunk.pygame_util.to_pygame( seg.a, screen))
+        v2 = Vec2d( pymunk.pygame_util.to_pygame( seg.b, screen))
+        
+        #extend the segments to match their collision box
+        if self.extended_segment_render:
+            vect = v2-v1
+            vect /= vect.get_length()
+            v2 += vect * seg.radius
+            v1 -= vect * seg.radius
+        
+        
+        
         xdif = v2[0]-v1[0]
         ydif = v2[1]-v1[1]
-        slicesize = seg.radius*2 + self.slicesize
+        slicesize = seg.radius*2 + self.inflation
     
         if math.fabs(xdif) > math.fabs(ydif):
             slope = float(ydif)/xdif
@@ -132,9 +144,6 @@ class GameplayActivity(Activity):
         self.particle_limit = settings.get("particle_limit")
         self.particle_fps_limit = settings.get("particle_fps_limit")
         self.optimize_drawing = True
-        self.bg_index = 3
-        self.bgs = ["background1", "background2", "background3", "background4", "background5"]
-        
         
         self.segment_renderers = [
             SegmentRenderer(resources.get("woodtex"),11),
@@ -148,7 +157,8 @@ class GameplayActivity(Activity):
             SpinnerRenderer(resources.get("spinner3")),
         ]
         
-        self.filename = config["level"]
+        self.levelnum = config["level"]
+        self.filename = self.controller.level_path( config["level"])
         self.level_elements = ET.parse( self.filename).getroot()
         self.reload_level()
         
@@ -170,6 +180,12 @@ class GameplayActivity(Activity):
         #bail out now if the game is paused (or the player won)
         if self.game_mode == GAME_PAUSE or self.game_mode == GAME_WON:
             return None        
+        
+        #check for player off map
+        if self.game_mode != GAME_OVER:
+            pos = self.player.position
+            if pos[0] < 0 or pos[1] < 0 or pos[0] > self.screen_size[0] or pos[1] > self.screen_size[1]:
+                self.kill_player()
         
         #enforce terminal velocity on player
         speed = self.player.velocity.get_length()
@@ -347,8 +363,16 @@ class GameplayActivity(Activity):
                     self.finish()
                 else:
                     self.pause_game()
+            elif event.key == K_F2:
+                self.complex_drawing = not self.complex_drawing
             elif event.key == K_SPACE:
-                self.resume_game()
+                if self.game_mode == GAME_WON:
+                    self.start_next_level()
+                else:
+                    self.resume_game()
+            elif event.key == K_r:
+                SegmentRenderer.extended_segment_render = not SegmentRenderer.extended_segment_render
+                print SegmentRenderer.extended_segment_render
             elif event.key == K_q:
                 self.level_elements = ET.parse( self.filename).getroot()
                 self.reload_level()
@@ -356,14 +380,6 @@ class GameplayActivity(Activity):
                 self.complex_drawing = not self.complex_drawing
             elif event.key == K_z:
                 self.reposition_player( self.mousepos, (0,0))
-            elif event.key == K_w:
-                SegmentRenderer.slicesize += 1
-                print SegmentRenderer.slicesize
-            elif event.key == K_e:
-                SegmentRenderer.slicesize -= 1
-                print SegmentRenderer.slicesize
-            elif event.key == K_c:
-                print SPECIAL_GRAVITY
             elif event.key == K_v:
                 self.player_float += 100
                 print self.player_float
@@ -379,14 +395,12 @@ class GameplayActivity(Activity):
                 self.optimize_drawing = not self.optimize_drawing
             elif event.key == K_F4:
                 pygame.image.save(pygame.display.get_surface(), "screen.png")
-            elif event.key == K_F2:
-                self.bg_index = (self.bg_index+1)%len(self.bgs)
 
         if not event_handled:
             Activity.handle_event(self, event)
 
     def draw_statics(self, screen):
-        screen.blit(resources.get(self.bgs[self.bg_index]), (0,0))    
+        screen.blit(resources.get("background"), (0,0))    
     
         #draw platform segments
         for s in self.segments:
@@ -636,6 +650,10 @@ class GameplayActivity(Activity):
         self.space.add( spinner, shape, rot_joint)
         self.spinners.append( spinner)
         return spinner
+        
+    def randcolor(self, color):
+        value = random.uniform(0.3,1.0)
+        return (int(color[0]*value), int(color[1]*value), int(color[2]*value))
     
     def make_particles(self, pos, number, color):
         #prevent massive fps drops
@@ -649,12 +667,12 @@ class GameplayActivity(Activity):
             angle = random.uniform( 0.0, 2*math.pi)
             vel = random.uniform(100.0, 300.0)
         
-            body = pymunk.Body( 0.1, pymunk.inf)
+            body = pymunk.Body( 0.01, pymunk.inf)
             body.position = pos
             body.velocity = Vec2d( vel*math.sin(angle), vel*math.cos(angle))
-            body.color = color
+            body.color = self.randcolor(color)
             body.life = random.uniform( 0.5, 2.0)
-            body.apply_force( (0,20))#force to reduce gravity on particles
+            body.apply_force( (0,200*body.mass))#force to reduce gravity on particles
 
             shape = pymunk.Circle( body, 0.75)
             shape.color = color
@@ -972,6 +990,7 @@ class GameplayActivity(Activity):
     def kill_player(self):
         sz1 = 50
         sz2 = 30
+        sz3 = 18
         dietexts = (
             [(sz1, "You killed Bob"), (sz2, "I hope it was worth it")],
             [(sz1, "You killed Bob"), (sz2, "Just as I expected")],
@@ -981,17 +1000,19 @@ class GameplayActivity(Activity):
             [(sz1, "Farewell Bob"), (sz2, "You will be missed")],
             [(sz1, "You suck"), (sz2, "Seriously what are you even doing?")],
         )    
+        addendum = [(sz3, "Press Q to reload")]
     
         snd = resources.get( "playerdie")
         snd.play()
         self.space.remove( self.player, self.player.shape)
         self.player.dead = True
         self.game_mode = GAME_OVER
-        self.show_status_text( True, -1.0, random.choice(dietexts))
+        self.show_status_text( True, -1.0, random.choice(dietexts)+addendum)
         
     def win_level(self):
         sz1 = 50
         sz2 = 30
+        sz3 = 18
         wintexts = (
             [(sz1, "Good job"), (sz2, "Maybe try going outside some time")],
             [(sz1, "You won"), (sz2, "You want a trophy or something?")],
@@ -999,10 +1020,14 @@ class GameplayActivity(Activity):
             [(sz1, "You did it"), (sz2, "I could have done it faster")],
             [(sz1, "Wow"), (sz2, "A trained ape could have done better")],
             [(sz1, "Impressive"), (sz2, "But not as impressive as you think")],
-        )   
+        )
+        addendum = [(sz3, "Press SPACE to continue")]
+
     
         self.game_mode = GAME_WON
-        self.show_status_text( True, -1.0, random.choice( wintexts))
+        snd = resources.get("victory")
+        snd.play()
+        self.show_status_text( True, -1.0, random.choice( wintexts)+addendum)
      
     def pause_game(self):
         self.game_mode = GAME_PAUSE
@@ -1011,5 +1036,10 @@ class GameplayActivity(Activity):
     def resume_game(self):
         self.game_mode = GAME_NORMAL
         self.clear_status_text()
+        
+    def start_next_level(self):
+        config = {"level": self.levelnum+1}
+        self.controller.start_activity( GameplayActivity, config)
+        self.finish()
 
 

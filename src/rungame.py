@@ -184,7 +184,7 @@ class LevelSelectMenu(menu.MenuActivity):
         return callback
         
     def start_level(self, levelnum):
-        self.controller.start_activity(GameplayActivity, {"level": self.controller.level_path(levelnum)})
+        self.controller.start_activity(GameplayActivity, {"level": levelnum})
         
     def adios(self):
         print "adios"

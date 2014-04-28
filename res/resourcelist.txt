@@ -1,7 +1,4 @@
 #some sounds
-sound, snd1, button-10.wav
-sound, snd2, button-2.wav
-
 sound, squish1, squish1.wav
 sound, squish2, squish2.wav
 sound, squish3, squish3.wav
@@ -12,8 +9,9 @@ sound, bounce1, bounce1.wav
 sound, bounce2, bounce2.wav
 sound, bounce3, bounce3.wav
 sound, bounce4, bounce4.wav
+sound, victory, victory.wav
 
-#animation shit
+#animation junk
 anim, goalani, goal.ani
 anim, enemyani, sheep.ani
 
@@ -30,7 +28,6 @@ image, tut4, tut4.png
 image, tut5a, tut5a.png
 image, tut5b, tut5b.png
 
-
 #spinners
 image, spinner3, iceplat.png
 image, spinner1, woodplat.png
@@ -44,11 +41,7 @@ image, magnet, magball.png
 image, fieldbg, ff3.png
 
 #backgrounds
-image, background1, bg1.png
-image, background2, bg2.png
-image, background3, bg3.png
-image, background4, bg4.png
-image, background5, bg5.png
+image, background, bg4.png
 
 #player sprites
 image, player, bob.png
