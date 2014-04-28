@@ -298,11 +298,11 @@ class GameplayActivity(Activity):
     def handle_event(self, event):
         event_handled = False
         
-        if event.type == MOUSEBUTTONDOWN and event.button == 3:
+        if (event.type == MOUSEBUTTONDOWN and event.button == 3) or (event.type == KEYDOWN and event.key == K_TAB):
             if self.player_launchable:
                 self.charging = True
 
-        elif event.type == MOUSEBUTTONUP and event.button == 3:            
+        elif (event.type == MOUSEBUTTONUP and event.button == 3) or (event.type == KEYUP and event.key == K_TAB):
             
             if self.charging:
                 #figure out the impulse vector
@@ -664,6 +664,7 @@ class GameplayActivity(Activity):
         if self.controller.fps < self.particle_fps_limit:
             return None
     
+        #cap the total number of particles at any time
         if len( self.particles) +number > self.particle_limit:    
             number = self.particle_limit-len(self.particles)
     
@@ -820,8 +821,8 @@ class GameplayActivity(Activity):
         self.space.add_collision_handler( COLL_PLAYER, COLL_ENEMY, pre_solve=self.player_enemy_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_SPINNER, begin=self.player_collide_with_sound, pre_solve=self.player_spinner_collide)
         self.space.add_collision_handler( COLL_PLAYER, COLL_SEGMENT, pre_solve=self.player_segment_collide, begin=self.player_collide_with_sound)
-        self.space.add_collision_handler( COLL_ENEMY, COLL_ENEMY, begin=self.enemy_enemy_collide)
-        #self.space.add_collision_handler( COLL_PARTICLE, COLL_PARTICLE, begin=self.particle_particle_collide)
+        self.space.add_collision_handler( COLL_ENEMY, COLL_ENEMY, begin=self.cancel_collide)
+        self.space.add_collision_handler( COLL_ENEMY, COLL_VICTORY, begin=self.cancel_collide)
         
         #reset the game objects
         self.make_player( (100, 100))    
@@ -896,8 +897,6 @@ class GameplayActivity(Activity):
                 self.make_forcefield( x, y, w, h, Vec2d(fx, fy))
         
             elif e.tag == "title":
-                print "something something your mom"
-                print e.text
                 title = e.text
                 
             elif e.tag == "subtitle":
@@ -918,7 +917,7 @@ class GameplayActivity(Activity):
     def enemy_enemy_collide(self, space, arbiter):
         return False                
 
-    def particle_particle_collide(self, space, arbiter):
+    def cancel_collide(self, space, arbiter):
         return False
         
     def stick_player_to_magnet(self, bbody, sbody, pos, space):
@@ -999,7 +998,7 @@ class GameplayActivity(Activity):
             [(sz1, "You killed Bob"), (sz2, "I hope it was worth it")],
             [(sz1, "You killed Bob"), (sz2, "Just as I expected")],
             [(sz1, "You killed him!"), (sz2, "Do you feel like a man now?")],
-            [(sz1, "Bob is dead!"), (sz2, "Good going dickhead")],
+            [(sz1, "Bob is dead!"), (sz2, "Way to go dumbass")],
             [(sz1, "How did you die there?"), (sz2, "Seriously!")],
             [(sz1, "Farewell Bob"), (sz2, "You will be missed")],
             [(sz1, "You suck"), (sz2, "Seriously what are you even doing?")],

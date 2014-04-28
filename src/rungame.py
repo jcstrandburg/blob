@@ -14,16 +14,20 @@ class MainMenuActivity(menu.MenuActivity):
     def on_create(self, config):
         menu.MenuActivity.on_create(self, config)
         font = pygame.font.Font(None, 36)
-    
-        widget = menu.TextButtonWidget( "Select Level", font, (200, 100))
+        bigfont = pygame.font.Font(None, 48)
+
+        widget = menu.TextWidget( "Bob the Blob", bigfont, (375, 50))
+        self.add_widget( widget)    
+
+        widget = menu.TextButtonWidget( "Level Select", font, (200, 250))
         widget.onclick = self.do_select_level
         self.add_widget( widget)    
 
-        widget = menu.TextButtonWidget( "How To Play", font, (200, 200))
+        widget = menu.TextButtonWidget( "How To Play", font, (200, 350))
         widget.onclick = self.do_how_to_play
         self.add_widget( widget)    
 
-        widget = menu.TextButtonWidget( "Adios", font, (200, 300))
+        widget = menu.TextButtonWidget( "Adios", font, (200, 450))
         widget.onclick = self.finish
         self.add_widget( widget)    
 
@@ -88,7 +92,7 @@ class TutorialActivity(Activity):
                     (["If you hit sheep at high speeds", "they die. If you hit them", "at low speed you die"],(350,400)),
                 ]),
             ("tut5b", [
-                    (["Kill the evil bastards before", "they kill you"],(500,600)),
+                    (["Kill the evil bastards", "before they kill you"],(500,600)),
                 ]),
         ]
         self.panel = 0
@@ -165,14 +169,30 @@ class LevelSelectMenu(menu.MenuActivity):
     def on_create(self, config):
         menu.MenuActivity.on_create(self, config)
         font = pygame.font.Font(None, 36)
+        bigfont = pygame.font.Font(None, 48)
     
+        widget = menu.TextWidget( "Select A Level:", bigfont, (375, 50))
+        self.add_widget( widget)    
+
         levels = self.controller.get_level_list()
+        width = int(math.ceil
+( math.sqrt( len(levels))))
+        gridspacex = (750-200)/(width-1)
+        gridspacey = (750-400)/(width-1)
+        xbase = 100
+        ybase = 200
+        if int(math.ceil(float(len(levels))/width)) < width:
+            ybase += gridspacey/2
+        
         for index, lev in enumerate( levels):
-            widget = menu.TextButtonWidget( "Level "+str(lev), font, (200, 100+index*30))
+            pos = (200, 100+index*30)
+            pos = (xbase+gridspacex*(index%width), ybase+gridspacey*(index/width))
+
+            widget = menu.TextButtonWidget( "Level "+str(lev), font, pos)
             widget.onclick = self.make_level_callback( lev)
             self.add_widget( widget)    
 
-        widget = menu.TextButtonWidget( "Adios", font, (200, 200+index*30))
+        widget = menu.TextButtonWidget( "Back", font, (375, 675))
         widget.onclick = self.adios
         self.add_widget( widget)
 

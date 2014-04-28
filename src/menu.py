@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import *
-from framework import Activity
+from framework import Activity, resources
 
 
 class MenuWidget(pygame.sprite.Sprite):
@@ -17,7 +17,7 @@ class MenuWidget(pygame.sprite.Sprite):
         return False
         
     def select(self):
-        if not self.selected:
+        if not self.selected and self.is_selectable():
             self.selected = True
             self.on_select()
 
@@ -34,6 +34,11 @@ class MenuWidget(pygame.sprite.Sprite):
         
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+        if self.selected:
+            img = resources.get("player")
+            pos = self.rect.topleft
+            pos = (pos[0] - img.get_width() - 10, pos[1])
+            screen.blit(img, pos)
             
 class TextWidget(MenuWidget):
 
@@ -112,7 +117,7 @@ class MenuActivity(Activity):
                     for i in xrange(len(self._widgets)-1):
                         index2 = (index-i)%len(self._widgets)
                         if self._widgets[index2].is_selectable():
-                            print "changing selection"
+                            print "changing selection", index2
                             self._selectedwidget.unselect()
                             self._selectedwidget = self._widgets[index2]
                             self._selectedwidget.select()
@@ -129,6 +134,7 @@ class MenuActivity(Activity):
                     for i in xrange(len(self._widgets)-1):
                         index2 = (index+i)%len(self._widgets)
                         if self._widgets[index2].is_selectable():
+                            print "changing selection", index2
                             self._selectedwidget.unselect()
                             self._selectedwidget = self._widgets[index2]
                             self._selectedwidget.select()
@@ -138,7 +144,8 @@ class MenuActivity(Activity):
                         self._selectedwidget = self._widgets[0]
                         self._selectedwidget.select()            
             
-            elif event.key == K_SPACE:
+
+            elif event.key == K_SPACE or event.key == K_RETURN:
                 if self._selectedwidget is not None and self._selectedwidget.is_clickable:
                     if self._selectedwidget.onclick is not None:
                         self._selectedwidget.onclick()

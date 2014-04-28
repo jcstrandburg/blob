@@ -29,12 +29,13 @@
 	<enemy x='625' y='625' leftlimit='100' rightlimit='650' dir='-1'/>
 	<enemy x='700' y='625' leftlimit='50' rightlimit='600' dir='-1'/>
 	
-	<spinner mode='free' x='400' y='100' length='80' angle='1.3' speed='0.0' material='1'/>
-	<spinner mode='free' x='100' y='200' length='80' angle='2.3' speed='0.0' material='1'/>
-	<spinner mode='free' x='200' y='400' length='80' angle='3.3' speed='0.0' material='1'/>
-	<spinner mode='free' x='400' y='350' length='80' angle='.5' speed='0.0' material='1'/>
-	<spinner mode='free' x='550' y='300' length='80' angle='1.0' speed='0.0' material='1'/>
 
-	<victory x='720' y='720' w='25' h='25'/>
+	<spinner mode='free' x='100' y='175' length='80' angle='2.3' speed='0.0' material='1'/>
+	<spinner mode='free' x='150' y='400' length='80' angle='3.3' speed='0.0' material='1'/>
+	<spinner mode='free' x='300' y='350' length='80' angle='1.6' speed='0.0' material='1'/>
+	<spinner mode='free' x='400' y='100' length='80' angle='1.3' speed='0.0' material='1'/>
+	<spinner mode='drag' x='550' y='300' length='80' angle='1.0' speed='0.0' material='1'/>
+
+	<victory x='600' y='600' w='100' h='100'/>
 	
 </level>

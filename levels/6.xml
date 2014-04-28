@@ -21,10 +21,17 @@
 
     <segment x1='0' y1='200' x2='200' y2='200' material='0'/>
     <segment x1='100' y1='300' x2='450' y2='300' material='0'/>
-    <segment x1='450' y1='0' x2='450' y2='300' material='0'/>
+    <segment x1='450' y1='0' x2='450' y2='600' material='0'/>
 
     <gravball mode='pull' x='300' y='180' size='35' wellsize='110'/>
+
+    <gravball mode='pull' x='450' y='600' size='35' wellsize='110'/>
 	
-	<enemy x='550' y='40' leftlimit='500' rightlimit='700' dir='0'/>
+	<enemy x='550' y='40' leftlimit='500' rightlimit='700' dir='1'/>
+
+    <segment x1='575' y1='450' x2='730' y2='575' material='2'/>
+    <segment x1='470' y1='375' x2='625' y2='275' material='2'/>
+    <segment x1='575' y1='125' x2='760' y2='250' material='2'/>
+	<victory x='675' y='125' w='75' h='75'/>
 
 </level>
