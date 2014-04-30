@@ -1,3 +1,11 @@
+'''
+Justin Strandburg
+CS 321
+WWU Spring 2014
+2D Pygame Project
+Helper class for animation handlling
+'''
+
 import pygame
 import os
 

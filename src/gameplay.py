@@ -1,3 +1,11 @@
+'''
+Justin Strandburg
+CS 321
+WWU Spring 2014
+2D Pygame Project
+The main gameplay logic module
+'''
+
 import math, random, os, sys
 import xml.etree.ElementTree as ET
 import pygame

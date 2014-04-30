@@ -1,3 +1,11 @@
+'''
+Justin Strandburg
+CS 321
+WWU Spring 2014
+2D Pygame Project
+Implementations of varius menu activities, and the main game loop
+'''
+
 import pygame
 from pygame.locals import *
 

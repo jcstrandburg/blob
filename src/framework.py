@@ -1,3 +1,11 @@
+'''
+Justin Strandburg
+CS 321
+WWU Spring 2014
+2D Pygame Project
+Generic framework classes for non game-specific engine stuff
+'''
+
 import pygame
 import random, time, os, fnmatch, sys
 

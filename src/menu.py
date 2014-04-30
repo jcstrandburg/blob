@@ -1,3 +1,11 @@
+'''
+Justin Strandburg
+CS 321
+WWU Spring 2014
+2D Pygame Project
+Base classes for the menu sysem
+'''
+
 import pygame
 from pygame.locals import *
 from framework import Activity, resources
