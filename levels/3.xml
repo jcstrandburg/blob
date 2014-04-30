@@ -13,6 +13,8 @@
 
 	<player x='725' y='50'/>
 
+	<title>Level 3</title>
+	<subtitle>Boing</subtitle>
 
 	<!--world borders-->
     <segment x1='750' y1='0' x2='750' y2='750' material='0'/>
@@ -20,18 +22,20 @@
     <segment x1='0' y1='0' x2='750' y2='0' material='0'/>
 
     <segment x1='175' y1='250' x2='750' y2='250' material='0'/>
-	<segment x1='175' y1='95' x2='175' y2='255' material='0'/>
-	<segment x1='175' y1='100' x2='250' y2='100' material='0'/>
-	<segment x1='0' y1='400' x2='600' y2='400' material='0'/>	
-	<segment x1='525' y1='425' x2='600' y2='400' material='0'/>	
-	<segment x1='525' y1='525' x2='600' y2='550' material='0'/>	
+	<segment x1='175' y1='130' x2='175' y2='255' material='0'/>
+	<segment x1='175' y1='130' x2='250' y2='130' material='0'/>
+	
+	<segment x1='0' y1='400' x2='540' y2='400' material='0'/>
+	<segment x1='535' y1='435' x2='540' y2='393' material='0'/>	
+	<segment x1='535' y1='515' x2='540' y2='550' material='0'/>	
+	
 	<segment x1='0' y1='550' x2='750' y2='550' material='0'/>
 	
-	<gravball mode='pull' x='300' y='125' size='30' wellsize='120'/>
-	<gravball mode='pull' x='550' y='125' size='30' wellsize='120'/>	
+	<gravball mode='pull' x='325' y='125' size='25' wellsize='120'/>
+	<gravball mode='pull' x='550' y='125' size='35' wellsize='120'/>	
 	<gravball mode='pull' x='625' y='450' size='35' wellsize='100'/>
 
-	<forcefield x='0' y='0' w='200' h='250' forcex='0' forcey='20'/>
+	<forcefield x='0' y='0' w='180' h='250' forcex='0' forcey='20'/>
 	
 	<spinner mode='fixed' x='250' y='320' length='52' angle='0' speed='-1.5' material='1'/>
 	<spinner mode='fixed' x='380' y='325' length='52' angle='2' speed='-2.0' material='1'/>

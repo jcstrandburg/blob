@@ -12,8 +12,8 @@
 	<title>Something something title</title>
 	-->
 
-	<title>Level x</title>
-	<subtitle>Something something your mom</subtitle>
+	<title>Level 10</title>
+	<subtitle>Over Under</subtitle>
 	
 	<player x='50' y='50'/>
 
@@ -38,7 +38,7 @@
 	<victory x='10' y='650' w='100' h='100'/>
 
     <spinner mode='fixed' x='375' y='600' length='75' angle='1.3' speed='-4.0' material='2'/>
-    <spinner mode='fixed' x='375' y='400' length='75' angle='1.3' speed='-2.5' material='2'/>
+    <spinner mode='fixed' x='325' y='400' length='75' angle='1.3' speed='-2.5' material='2'/>
     <spinner mode='fixed' x='375' y='200' length='75' angle='1.3' speed='1.5' material='2'/>
 
 

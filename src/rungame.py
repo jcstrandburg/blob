@@ -16,18 +16,18 @@ class MainMenuActivity(menu.MenuActivity):
         font = pygame.font.Font(None, 36)
         bigfont = pygame.font.Font(None, 48)
 
-        widget = menu.TextWidget( "Bob the Blob", bigfont, (375, 50))
+        widget = menu.TextWidget( "Bob the Blob", bigfont, (375, 200))
         self.add_widget( widget)    
 
-        widget = menu.TextButtonWidget( "Level Select", font, (200, 250))
+        widget = menu.TextButtonWidget( "Level Select", font, (375, 350))
         widget.onclick = self.do_select_level
         self.add_widget( widget)    
 
-        widget = menu.TextButtonWidget( "How To Play", font, (200, 350))
+        widget = menu.TextButtonWidget( "How To Play", font, (375, 425))
         widget.onclick = self.do_how_to_play
         self.add_widget( widget)    
 
-        widget = menu.TextButtonWidget( "Adios", font, (200, 450))
+        widget = menu.TextButtonWidget( "Adios", font, (375, 550))
         widget.onclick = self.finish
         self.add_widget( widget)    
 
@@ -51,6 +51,7 @@ class MainMenuActivity(menu.MenuActivity):
             menu.MenuActivity.handle_event(self, event)
             
     def draw(self, screen):
+        screen.blit( resources.get("menubg"), (0,0))
         menu.MenuActivity.draw(self, screen)
 
 class TutorialActivity(Activity):
@@ -171,16 +172,15 @@ class LevelSelectMenu(menu.MenuActivity):
         font = pygame.font.Font(None, 36)
         bigfont = pygame.font.Font(None, 48)
     
-        widget = menu.TextWidget( "Select A Level:", bigfont, (375, 50))
+        widget = menu.TextWidget( "Select A Level:", bigfont, (375, 200))
         self.add_widget( widget)    
 
         levels = self.controller.get_level_list()
-        width = int(math.ceil
-( math.sqrt( len(levels))))
+        width = int(math.ceil( math.sqrt( len(levels))))
         gridspacex = (750-200)/(width-1)
-        gridspacey = (750-400)/(width-1)
+        gridspacey = (750-450)/(width-1)
         xbase = 100
-        ybase = 200
+        ybase = 225
         if int(math.ceil(float(len(levels))/width)) < width:
             ybase += gridspacey/2
         
@@ -225,7 +225,7 @@ class LevelSelectMenu(menu.MenuActivity):
             menu.MenuActivity.handle_event(self, event)
             
     def draw(self, screen):
-        #self.bg.draw( screen)
+        screen.blit( resources.get("menubg"), (0,0))
         menu.MenuActivity.draw(self, screen)
 
 def main():

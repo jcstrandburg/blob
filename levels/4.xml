@@ -11,6 +11,9 @@
 	<victory x='250' y='300' w='100' h='100'/>
 	-->
 
+	<title>Level 4</title>
+	<subtitle>I don't think you understand the gravity of the situation</subtitle>
+	
 	<!--world borders-->
     <segment x1='750' y1='0' x2='750' y2='750' material='0'/>
     <segment x1='0' y1='0' x2='0' y2='750' material='0'/>

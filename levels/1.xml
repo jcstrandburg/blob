@@ -11,6 +11,9 @@
 	<victory x='250' y='300' w='100' h='100'/>
 	-->
 	
+	<title>Level 1</title>
+	<subtitle>Don't touch the lava</subtitle>
+	
     <player x='50' y='50'/>
 
     <segment x1='0' y1='120' x2='550' y2='120' material='0'/>

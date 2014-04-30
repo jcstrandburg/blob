@@ -11,6 +11,9 @@
 	<victory x='250' y='300' w='100' h='100'/>
 	-->
 
+	<title>Level 6</title>
+	<subtitle>Wheeeeeee!</subtitle>	
+	
 	<player x='50' y='50'/>
 
 
@@ -21,10 +24,12 @@
 
     <segment x1='0' y1='200' x2='200' y2='200' material='0'/>
     <segment x1='100' y1='300' x2='450' y2='300' material='0'/>
-    <segment x1='450' y1='0' x2='450' y2='600' material='0'/>
+    <segment x1='450' y1='0' x2='450' y2='615' material='0'/>
 
     <gravball mode='pull' x='300' y='180' size='35' wellsize='110'/>
 
+	<enemy x='100' y='275' leftlimit='25' rightlimit='200' dir='1'/>
+	
     <gravball mode='pull' x='450' y='600' size='35' wellsize='110'/>
 	
 	<enemy x='550' y='40' leftlimit='500' rightlimit='700' dir='1'/>

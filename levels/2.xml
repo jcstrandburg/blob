@@ -13,6 +13,8 @@
 
 	<player x='600' y='600'/>
 
+	<title>Level 2</title>
+	<subtitle>Watch your step</subtitle>
 
 	<!--world borders-->
     <segment x1='750' y1='0' x2='750' y2='750' material='0'/>

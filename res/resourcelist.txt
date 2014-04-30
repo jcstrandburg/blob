@@ -42,6 +42,7 @@ image, fieldbg, ff3.png
 
 #backgrounds
 image, background, bg4.png
+image, menubg, menubg.gif
 
 #player sprites
 image, player, bob.png

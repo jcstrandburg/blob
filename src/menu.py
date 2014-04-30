@@ -47,8 +47,10 @@ class TextWidget(MenuWidget):
         self.text = text
         
         self.images = []
-        self.images.append( font.render( self.text, 1, (200, 200, 200)))
-        self.images.append( font.render( self.text, 1, (250, 250, 50)))
+        #self.images.append( font.render( self.text, 1, (200, 200, 200)))
+        #self.images.append( font.render( self.text, 1, (250, 250, 50)))
+        self.images.append( font.render( self.text, 1, (50, 50, 50)))
+        self.images.append( font.render( self.text, 1, (250, 250, 250)))
         self.image = self.images[0]
         
         self.rect = self.image.get_rect()

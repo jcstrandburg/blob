@@ -5,7 +5,7 @@ screenh = 750
 #beefbob = 100
 
 level_dir = levels
-particle_limit = 250
+particle_limit = 225
 particle_fps_limit = 60
 
 #control the timestep range
